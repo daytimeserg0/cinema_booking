@@ -1,0 +1,27 @@
+/* Add Hall button */
+button.add_hall {
+    padding: 8px 15px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button.add_hall:hover {
+    background-color: #218838;
+}
+
+/* Delete Hall button */
+button.delete_hall {
+    padding: 8px 15px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button.delete_hall:hover {
+    background-color: #c82333;
+}

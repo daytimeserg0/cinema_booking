@@ -21,7 +21,10 @@
 <body>
     <h1>Welcome to Cinema Booking</h1>
 
-    {% if session.username %}
+    {% if session.role == 'admin' %}
+        <a href="/logout" class="btn">Logout</a>
+        <a href="/admin" class="btn">Admin Panel</a>
+    {% elif session.username %}
         <p>Hello, {{ session.username }}!</p>
         <a href="/logout" class="btn">Logout</a>
         <a href="/account" class="btn">My Account</a>

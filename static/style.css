@@ -1,0 +1,43 @@
+/* general body styling */
+body {
+    font-family: Arial, sans-serif;
+    padding: 50px;
+    text-align: center;
+}
+
+/* inputs */
+input {
+    padding: 5px;
+    margin: 5px 0;
+    width: 200px;
+}
+
+/* flash messages */
+.message {
+    margin: 20px 0;
+    font-weight: bold;
+    color: #333;
+}
+
+/* table styling */
+table {
+    border-collapse: collapse;
+    margin: 20px auto;
+    width: 60%;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+th {
+    background-color: #007BFF;
+    color: white;
+}
+
+/* headings */
+h2 {
+    margin-top: 40px;
+}
