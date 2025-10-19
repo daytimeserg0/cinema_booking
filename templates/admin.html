@@ -11,29 +11,17 @@
     <p>Welcome, {{ session.username }}!</p>
     <p><a href="/">Back to Home</a></p>
 
-
-    <!-- Add New Hall Form -->
-    <h2>Add New Hall</h2>
-    <style>
-      .message.success { color: green; font-weight: bold; }
-      .message.error { color: red; font-weight: bold; }
-    </style>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, msg in messages %}
-          <div class="message {{ category }}">{{ msg }}</div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-    <form method="POST">
-        <input type="text" name="name" placeholder="Hall Name" required><br>
-        <input type="number" name="rows" placeholder="Number of Rows" min="1" required><br>
-        <input type="number" name="seats_per_row" placeholder="Seats per Row" min="1" required><br><br>
-        <button type="submit" name="add_hall" class="add_hall">Add Hall</button>
-    </form>
-
     <!-- List of existing halls -->
     <h2>Existing Halls</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, msg in messages %}
+                    {% if category.startswith('delete_hall_') %}
+                        <div class="message {{ category }}">{{ msg }}</div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
       {% if halls %}
           <table>
               <tr>
@@ -62,6 +50,45 @@
       {% else %}
           <p>No halls available.</p>
       {% endif %}
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, msg in messages %}
+                {% if category.startswith('add_hall_') %}
+                    <div class="message {{ category }}">{{ msg }}</div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Button to show the form -->
+    <button id="showAddHallForm" class="add_hall">Add New Hall ▼</button>
+
+    <div id="addHallForm" style="display:none; margin-top: 20px;">
+
+        <form method="POST">
+            <input type="text" name="name" placeholder="Hall Name" required><br>
+            <input type="number" name="rows" placeholder="Number of Rows" min="1" required><br>
+            <input type="number" name="seats_per_row" placeholder="Seats per Row" min="1" required><br><br>
+            <button type="submit" name="add_hall" class="add_hall">Submit</button>
+        </form>
+    </div>
+
+    <!-- JavaScript to toggle form visibility -->
+    <script>
+        const btn = document.getElementById('showAddHallForm');
+        const form = document.getElementById('addHallForm');
+
+        btn.addEventListener('click', function() {
+            if (form.style.display === 'none') {
+                form.style.display = 'block';
+                btn.textContent = "Hide Form ▲"; // текст меняется
+            } else {
+                form.style.display = 'none';
+                btn.textContent = "Add New Hall ▼"; // обратно
+            }
+        });
+    </script>
 
 </body>
 </html>

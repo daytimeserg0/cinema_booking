@@ -19,6 +19,21 @@ input {
     color: #333;
 }
 
+/* success message */
+.message.add_hall_success {
+    color: green;
+}
+
+/* success message */
+.message.delete_hall_success {
+    color: green;
+}
+
+/* error message */
+.message.add_hall_error {
+    color: red;
+}
+
 /* table styling */
 table {
     border-collapse: collapse;

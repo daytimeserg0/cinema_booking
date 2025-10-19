@@ -45,7 +45,7 @@ def register():
 
             cur.close()
             conn.close()
-            return redirect("/")  # redirect to home after successful registration
+            return redirect("/")
 
         cur.close()
         conn.close()
@@ -111,14 +111,14 @@ def admin_panel():
             hall = cur.fetchone()
 
             if hall:
-                flash("Hall already exists!", "error")
+                flash("Hall already exists!", "add_hall_error")
             else:
                 cur.execute(
                     "INSERT INTO halls (name, rows, seats_per_row) VALUES (%s, %s, %s);",
                     (hall_name, rows, seats_per_row)
                 )
                 conn.commit()
-                flash(f"Hall '{hall_name}' added successfully!", "success")
+                flash(f"Hall '{hall_name}' added successfully!", "add_hall_success")
 
             cur.close()
             conn.close()
@@ -129,7 +129,7 @@ def admin_panel():
             hall_id = request.form["delete_hall"]
             cur.execute("DELETE FROM halls WHERE id = %s;", (hall_id,))
             conn.commit()
-            flash("Hall deleted successfully!", "success")
+            flash("Hall deleted successfully!", "delete_hall_success")
             cur.close()
             conn.close()
             return redirect(url_for("admin_panel"))
