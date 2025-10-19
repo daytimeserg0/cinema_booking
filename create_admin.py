@@ -1,13 +1,8 @@
 import psycopg2
 from psycopg2 import sql
 from werkzeug.security import generate_password_hash
+from db import get_db_connection
 
-# Settings
-DB_NAME = "cinema_db"
-DB_USER = "your_username"
-DB_PASSWORD = "your_password"   # enter your password
-DB_HOST = "localhost"
-DB_PORT = "5432"
 
 # Admin
 admin_username = "admin"
@@ -15,13 +10,7 @@ admin_password = "1234"
 admin_role = "admin"
 
 try:
-    conn = psycopg2.connect(
-        dbname=DB_NAME,
-        user=DB_USER,
-        password=DB_PASSWORD,
-        host=DB_HOST,
-        port=DB_PORT
-    )
+    conn = get_db_connection()
     cur = conn.cursor()
 
     # Check admin name
