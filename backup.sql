@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict EJIFRyzWacigv7Q6NSB4QOi4jUTF0m9eZCIDbvFL2hsldAKJan2wuZpbYqUL39R
+\restrict axbRYBHt7qEeQr3ehyd0fXTL0EJ9lBnovSVAvXJujOzVCempqGUOEpqOhowiDAR
 
 -- Dumped from database version 18.0
 -- Dumped by pg_dump version 18.0
 
--- Started on 2025-10-19 15:50:38
+-- Started on 2025-10-19 15:53:14
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -286,7 +286,6 @@ COPY public.bookings (id, user_id, session_id, seat_row, seat_number, booked_at)
 --
 
 COPY public.halls (id, name, rows, seats_per_row) FROM stdin;
-8	Hall #1	10	15
 \.
 
 
@@ -317,10 +316,6 @@ COPY public.sessions (id, movie_id, hall_id, datetime, price) FROM stdin;
 --
 
 COPY public.users (id, username, password, role) FROM stdin;
-1	admin	scrypt:32768:8:1$u9wmrBdFTkerEjpB$db05affd8a6519719fa8ed8f40314f2b20b03b17a52927a204f0a9b98f311e6edb100af7f8928c5bf28efebc59b2a20b052b5398be0287038954ffab0eeef0ff	admin
-2	egor	scrypt:32768:8:1$OEsbFb2GJbAj9zDI$e8b183bec846fbf46f6a1e00311deeef8acdcb6c130f99a4ceb95e7b318ffe31448220ba7985ffdf154ab62052b5db1de8181dd069696b13135db8336fda912a	user
-3	egor2	scrypt:32768:8:1$lyPG90VghZDRqGrw$cc63153320a41ad844ff3929deaf25b3dbfff6db3734e7b37b15cc4f9ff897b6a187f3cfc293715f88003d8c0906ce22bdd558a671bb049e6802bc25c95e4f2d	user
-5	egor3	scrypt:32768:8:1$pA1Y7w1OSQxqv6jx$77da8c32895f7915f575225696003ec17bba17155aa74c1cd760e93da0d756d608e36ae294466a0d26cd95461933a7ab7c6a0762088d99dd93efa02323749772	user
 \.
 
 
@@ -459,11 +454,11 @@ ALTER TABLE ONLY public.sessions
     ADD CONSTRAINT sessions_movie_id_fkey FOREIGN KEY (movie_id) REFERENCES public.movies(id);
 
 
--- Completed on 2025-10-19 15:50:38
+-- Completed on 2025-10-19 15:53:14
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict EJIFRyzWacigv7Q6NSB4QOi4jUTF0m9eZCIDbvFL2hsldAKJan2wuZpbYqUL39R
+\unrestrict axbRYBHt7qEeQr3ehyd0fXTL0EJ9lBnovSVAvXJujOzVCempqGUOEpqOhowiDAR
 
