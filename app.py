@@ -32,10 +32,17 @@ def register():
             message = "Username already exists!"
         else:
             cur.execute(
-                "INSERT INTO users (username, password, role) VALUES (%s, %s, %s);",
+                "INSERT INTO users (username, password, role) VALUES (%s, %s, %s) RETURNING id;",
                 (username, hashed_password, "user")
             )
+            new_user_id = cur.fetchone()[0]
             conn.commit()
+
+            # Set session for the new user
+            session["user_id"] = new_user_id
+            session["username"] = username
+            session["role"] = "user"
+
             cur.close()
             conn.close()
             return redirect("/")  # redirect to home after successful registration
@@ -71,6 +78,18 @@ def login():
 
     return render_template("login.html", message=message)
 
+# Logout route
+@app.route("/logout")
+def logout():
+    session.clear()  # clears all session data
+    return redirect("/")
+
+# Account page (protected example)
+@app.route("/account")
+def account():
+    if "username" not in session:
+        return redirect("/login")
+    return f"Hello, {session['username']}! This is your account page."
 
 if __name__ == "__main__":
     app.run(debug=True)

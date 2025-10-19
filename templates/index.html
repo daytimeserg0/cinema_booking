@@ -20,7 +20,14 @@
 </head>
 <body>
     <h1>Welcome to Cinema Booking</h1>
-    <a href="/register" class="btn">Register</a>
-    <a href="/login" class="btn">Login</a>
+
+    {% if session.username %}
+        <p>Hello, {{ session.username }}!</p>
+        <a href="/logout" class="btn">Logout</a>
+        <a href="/account" class="btn">My Account</a>
+    {% else %}
+        <a href="/register" class="btn">Register</a>
+        <a href="/login" class="btn">Login</a>
+    {% endif %}
 </body>
 </html>
