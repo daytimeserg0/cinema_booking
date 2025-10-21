@@ -19,30 +19,15 @@ input {
     color: #333;
 }
 
-/* success message */
-.message.add_hall_success {
+/* Success messages */
+.message[class^="add_"].success,
+.message[class^="delete_"].success {
     color: green;
 }
 
-/* success message */
-.message.delete_hall_success {
-    color: green;
-}
-
-.message.add_movie_success {
-    color: green;
-}
-
-.message.delete_movie_success {
-    color: green;
-}
-
-/* error message */
-.message.add_hall_error {
-    color: red;
-}
-
-.message.add_movie_error {
+/* Error messages */
+.message[class^="add_"].error,
+.message[class^="delete_"].error {
     color: red;
 }
 

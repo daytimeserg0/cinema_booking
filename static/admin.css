@@ -1,5 +1,5 @@
 /* Add Hall button */
-button.add_hall {
+button[class^="add_"] {
     padding: 8px 15px;
     background-color: #28a745;
     color: white;
@@ -8,12 +8,12 @@ button.add_hall {
     cursor: pointer;
 }
 
-button.add_hall:hover {
+button[class^="add_"]:hover {
     background-color: #218838;
 }
 
-/* Delete Hall button */
-button.delete_hall {
+/* Buttons with class starting with delete_ */
+button[class^="delete_"] {
     padding: 8px 15px;
     background-color: #dc3545;
     color: white;
@@ -22,6 +22,6 @@ button.delete_hall {
     cursor: pointer;
 }
 
-button.delete_hall:hover {
+button[class^="delete_"]:hover {
     background-color: #c82333;
 }

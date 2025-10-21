@@ -141,8 +141,8 @@ def admin_panel():
             cur.execute("DELETE FROM halls WHERE id = %s;", (hall_id,))
             conn.commit()
             flash("Hall deleted successfully!", "delete_hall_success")
-            cur.close()
-            conn.close()
+            #cur.close()
+            #conn.close()
             return redirect(url_for("admin_panel"))
 
         # ---------------- ADD MOVIE ----------------
@@ -152,7 +152,6 @@ def admin_panel():
             duration = request.form["duration"]
             poster_file = request.files.get("poster")
 
-            #poster_path = None
             if poster_file and allowed_file(poster_file.filename):
                 filename = secure_filename(poster_file.filename)
                 poster_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
@@ -191,6 +190,40 @@ def admin_panel():
             flash("Movie deleted successfully!", "delete_movie_success")
             return redirect(url_for("admin_panel"))
 
+        # ---------------- ADD SESSION ----------------
+        if request.method == "POST" and "add_session" in request.form:
+            movie_id = request.form["movie_id"]
+            hall_id = request.form["hall_id"]
+            datetime_val = request.form["datetime"]
+            price = request.form["price"]
+
+            # Check if a session already exists
+            cur.execute("""
+                SELECT * FROM sessions 
+                WHERE movie_id = %s AND hall_id = %s AND datetime = %s;
+            """, (movie_id, hall_id, datetime_val))
+            existing_session = cur.fetchone()
+
+            if existing_session:
+                flash("A session for this movie, hall, and time already exists!", "add_session_error")
+            else:
+                cur.execute(
+                    "INSERT INTO sessions (movie_id, hall_id, datetime, price) VALUES (%s, %s, %s, %s);",
+                    (movie_id, hall_id, datetime_val, price)
+                )
+                conn.commit()
+                flash("Session added successfully!", "add_session_success")
+
+            return redirect(url_for("admin_panel"))
+
+        # ---------------- DELETE SESSION ----------------
+        if request.method == "POST" and "delete_session" in request.form:
+            session_id = request.form["delete_session"]
+            cur.execute("DELETE FROM sessions WHERE id = %s;", (session_id,))
+            conn.commit()
+            flash("Session deleted successfully!", "delete_session_success")
+            return redirect(url_for("admin_panel"))
+
         # ---------------- FETCH DATA ----------------
         cur.execute("SELECT id, name, rows, seats_per_row FROM halls ORDER BY id;")
         halls = cur.fetchall()
@@ -198,13 +231,22 @@ def admin_panel():
         cur.execute("SELECT id, title, description, duration, poster FROM movies ORDER BY id;")
         movies = cur.fetchall()
 
+        cur.execute("""
+        SELECT s.id, m.title, h.name, s.datetime, s.price
+        FROM sessions s
+        JOIN movies m ON s.movie_id = m.id
+        JOIN halls h ON s.hall_id = h.id
+        ORDER BY s.id;
+        """)
+        sessions = cur.fetchall()
+
         cur.close()
         conn.close()
     except Exception as e:
         flash(f"Error: {e}", "error")
-        halls, movies = [], []
+        halls, movies, sessions = [], [], []
 
-    return render_template("admin.html", halls=halls, movies=movies)
+    return render_template("admin.html", halls=halls, movies=movies, sessions=sessions)
 
 
 
