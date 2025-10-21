@@ -20,14 +20,12 @@ input {
 }
 
 /* Success messages */
-.message[class^="add_"].success,
-.message[class^="delete_"].success {
+.message[class*="_success"] {
     color: green;
 }
 
 /* Error messages */
-.message[class^="add_"].error,
-.message[class^="delete_"].error {
+.message[class*="_error"]{
     color: red;
 }
 
@@ -52,4 +50,32 @@ th {
 /* headings */
 h2 {
     margin-top: 40px;
+}
+
+/* Add buttons */
+button[class^="add_"]{
+    padding: 8px 15px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button[class^="add_"]:hover {
+    background-color: #218838;
+}
+
+/* Delete buttons */
+button[class^="delete_"] {
+    padding: 8px 15px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button[class^="delete_"]:hover {
+    background-color: #c82333;
 }

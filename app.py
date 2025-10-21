@@ -138,11 +138,23 @@ def admin_panel():
         # ---------------- DELETE HALL ----------------
         if request.method == "POST" and "delete_hall" in request.form:
             hall_id = request.form["delete_hall"]
+
+            # Check for linked sessions
+            cur.execute("SELECT id FROM sessions WHERE hall_id = %s;", (hall_id,))
+            linked_sessions = cur.fetchall()
+
+            # Delete linked sessions
+            if linked_sessions:
+                cur.execute("DELETE FROM sessions WHERE hall_id = %s;", (hall_id,))
+                conn.commit()
+
             cur.execute("DELETE FROM halls WHERE id = %s;", (hall_id,))
             conn.commit()
-            flash("Hall deleted successfully!", "delete_hall_success")
-            #cur.close()
-            #conn.close()
+
+            if linked_sessions:
+                flash("Hall and all linked sessions deleted successfully", 'delete_hall_success')
+            else:
+                flash("Hall deleted successfully!", "delete_hall_success")
             return redirect(url_for("admin_panel"))
 
         # ---------------- ADD MOVIE ----------------
@@ -175,6 +187,15 @@ def admin_panel():
         if request.method == "POST" and "delete_movie" in request.form:
             movie_id = request.form["delete_movie"]
 
+            # Check for linked sessions
+            cur.execute("SELECT id FROM sessions WHERE movie_id = %s;", (movie_id,))
+            linked_sessions = cur.fetchall()
+
+            # Delete linked sessions
+            if linked_sessions:
+                cur.execute("DELETE FROM sessions WHERE movie_id = %s;", (movie_id,))
+                conn.commit()
+
             cur.execute("SELECT poster FROM movies WHERE id = %s;", (movie_id,))
             poster = cur.fetchone()
 
@@ -186,8 +207,10 @@ def admin_panel():
                 print(poster_path)
                 if os.path.exists(poster_path):
                     os.remove(poster_path)
-
-            flash("Movie deleted successfully!", "delete_movie_success")
+            if linked_sessions:
+                flash("Movie and all linked sessions deleted successfully", 'delete_movie_success')
+            else:
+                flash("Movie deleted successfully!", "delete_movie_success")
             return redirect(url_for("admin_panel"))
 
         # ---------------- ADD SESSION ----------------

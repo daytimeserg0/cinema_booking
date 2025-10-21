@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>Admin Panel - Cinema Booking</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
 </head>
 <body>
     <h1>Admin Panel</h1>
@@ -39,7 +38,7 @@
                   <td>{{ hall[3] }}</td>
                   <td>
                       <form method="POST" style="display:inline;">
-                          <button type="submit" name="delete_hall" class="delete_hall" value="{{ hall[0] }}" onclick="return confirm('Are you sure you want to delete this hall?');">
+                          <button type="submit" name="delete_hall" class="delete_hall" value="{{ hall[0] }}" onclick="return confirm('Are you sure you want to delete this hall? If it has linked sessions they will also be deleted');">
                               Delete
                           </button>
                       </form>
@@ -113,7 +112,7 @@
                     </td>
                     <td>
                         <form method="POST" style="display:inline;">
-                            <button type="submit" name="delete_movie" class="delete_movie" value="{{ movie[0] }}" onclick="return confirm('Are you sure you want to delete this movie?');">
+                            <button type="submit" name="delete_movie" class="delete_movie" value="{{ movie[0] }}" onclick="return confirm('Are you sure you want to delete this movie? If it has linked sessions they will also be deleted');">
                                 Delete
                             </button>
                         </form>
@@ -206,17 +205,30 @@
 
     <div id="addSessionForm" style="display:none; margin-top:20px;">
       <form method="POST">
-        <select name="movie_id" required>
-          {% for movie in movies %}
-            <option value="{{ movie[0] }}">{{ movie[1] }}</option>
-          {% endfor %}
-        </select><br>
+            {% if movies %}
+                <select name="movie_id" required>
+                    {% for movie in movies %}
+                        <option value="{{ movie[0] }}">{{ movie[1] }}</option>
+                    {% endfor %}
+                </select><br>
+            {% else %}
+                <select name="movie_id" disabled>
+                    <option>No movies available</option>
+                </select><br>
+            {% endif %}
 
-        <select name="hall_id" required>
-          {% for hall in halls %}
-          <option value="{{ hall[0] }}">{{ hall[1] }}</option>
-          {% endfor %}
-        </select><br>
+
+            {% if halls %}
+                <select name="hall_id" required>
+                    {% for hall in halls %}
+                        <option value="{{ hall[0] }}">{{ hall[1] }}</option>
+                    {% endfor %}
+                </select><br>
+            {% else %}
+                <select name="hall_id" disabled>
+                    <option>No halls available</option>
+                </select><br>
+            {% endif %}
 
         <input type="datetime-local" name="datetime" required><br>
         <input type="number" step="0.01" name="price" placeholder="Price" required><br><br>
