@@ -29,8 +29,20 @@ input {
     color: green;
 }
 
+.message.add_movie_success {
+    color: green;
+}
+
+.message.delete_movie_success {
+    color: green;
+}
+
 /* error message */
 .message.add_hall_error {
+    color: red;
+}
+
+.message.add_movie_error {
     color: red;
 }
 

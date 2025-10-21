@@ -1,6 +1,7 @@
+import os
 from flask import Flask, render_template, request, redirect, session, url_for, flash
-import psycopg2
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from db import get_db_connection
 
 app = Flask(__name__)
@@ -91,6 +92,16 @@ def account():
         return redirect("/login")
     return f"Hello, {session['username']}! This is your account page."
 
+
+UPLOAD_FOLDER = os.path.join('static', 'posters')
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
+
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
 # Admin page
 @app.route("/admin", methods=["GET", "POST"])
 def admin_panel():
@@ -101,7 +112,7 @@ def admin_panel():
         conn = get_db_connection()
         cur = conn.cursor()
 
-        # Handle adding new hall
+        # ---------------- ADD HALL ----------------
         if request.method == "POST" and "add_hall" in request.form:
             hall_name = request.form["name"]
             rows = request.form["rows"]
@@ -124,7 +135,7 @@ def admin_panel():
             conn.close()
             return redirect(url_for("admin_panel"))
 
-        # Handle deleting hall
+        # ---------------- DELETE HALL ----------------
         if request.method == "POST" and "delete_hall" in request.form:
             hall_id = request.form["delete_hall"]
             cur.execute("DELETE FROM halls WHERE id = %s;", (hall_id,))
@@ -134,16 +145,66 @@ def admin_panel():
             conn.close()
             return redirect(url_for("admin_panel"))
 
-        # GET: fetch all halls
+        # ---------------- ADD MOVIE ----------------
+        if request.method == "POST" and "add_movie" in request.form:
+            title = request.form["title"]
+            description = request.form["description"]
+            duration = request.form["duration"]
+            poster_file = request.files.get("poster")
+
+            #poster_path = None
+            if poster_file and allowed_file(poster_file.filename):
+                filename = secure_filename(poster_file.filename)
+                poster_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+                poster_file.save(poster_path)
+
+            cur.execute("SELECT * FROM movies WHERE title = %s;", (title,))
+            movie = cur.fetchone()
+
+            if movie:
+                flash("Movie already exists!", "add_movie_error")
+            else:
+                cur.execute(
+                    "INSERT INTO movies (title, description, duration, poster) VALUES (%s, %s, %s, %s);",
+                    (title, description, duration, poster_file.filename)
+                )
+                conn.commit()
+                flash(f"Movie '{title}' added successfully!", "add_movie_success")
+            return redirect(url_for("admin_panel"))
+
+        # ---------------- DELETE MOVIE ----------------
+        if request.method == "POST" and "delete_movie" in request.form:
+            movie_id = request.form["delete_movie"]
+
+            cur.execute("SELECT poster FROM movies WHERE id = %s;", (movie_id,))
+            poster = cur.fetchone()
+
+            cur.execute("DELETE FROM movies WHERE id = %s;", (movie_id,))
+            conn.commit()
+
+            if poster and poster[0]:
+                poster_path = os.path.join(UPLOAD_FOLDER, poster[0])
+                print(poster_path)
+                if os.path.exists(poster_path):
+                    os.remove(poster_path)
+
+            flash("Movie deleted successfully!", "delete_movie_success")
+            return redirect(url_for("admin_panel"))
+
+        # ---------------- FETCH DATA ----------------
         cur.execute("SELECT id, name, rows, seats_per_row FROM halls ORDER BY id;")
         halls = cur.fetchall()
+
+        cur.execute("SELECT id, title, description, duration, poster FROM movies ORDER BY id;")
+        movies = cur.fetchall()
+
         cur.close()
         conn.close()
     except Exception as e:
         flash(f"Error: {e}", "error")
-        halls = []
+        halls, movies = [], []
 
-    return render_template("admin.html", halls=halls)
+    return render_template("admin.html", halls=halls, movies=movies)
 
 
 

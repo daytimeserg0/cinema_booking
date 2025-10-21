@@ -11,7 +11,7 @@
     <p>Welcome, {{ session.username }}!</p>
     <p><a href="/">Back to Home</a></p>
 
-    <!-- List of existing halls -->
+    <!-- ---------------- HALLS SECTION ---------------- -->
     <h2>Existing Halls</h2>
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -74,19 +74,99 @@
         </form>
     </div>
 
-    <!-- JavaScript to toggle form visibility -->
-    <script>
-        const btn = document.getElementById('showAddHallForm');
-        const form = document.getElementById('addHallForm');
 
-        btn.addEventListener('click', function() {
-            if (form.style.display === 'none') {
-                form.style.display = 'block';
-                btn.textContent = "Hide Form ▲"; // текст меняется
-            } else {
-                form.style.display = 'none';
-                btn.textContent = "Add New Hall ▼"; // обратно
-            }
+    <!-- ---------------- MOVIES SECTION ---------------- -->
+    <hr>
+    <h2>Existing Movies</h2>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, msg in messages %}
+                {% if category.startswith('delete_movie_') %}
+                    <div class="message {{ category }}">{{ msg }}</div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if movies %}
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Duration (min)</th>
+                <th>Poster</th>
+                <th>Action</th>
+            </tr>
+            {% for movie in movies %}
+            <tr>
+                <td>{{ movie[0] }}</td>
+                <td>{{ movie[1] }}</td>
+                <td>{{ movie[2] }}</td>
+                <td>{{ movie[3] }}</td>
+                <td>
+                    {% if movie[4] %}
+                        <img src="{{ url_for('static', filename='posters/' + movie[4]) }}" alt="Poster" width="60">
+                    {% else %}
+                        No poster
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="POST" style="display:inline;">
+                        <button type="submit" name="delete_movie" class="delete_hall" value="{{ movie[0] }}" onclick="return confirm('Are you sure you want to delete this movie?');">
+                            Delete
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No movies available.</p>
+    {% endif %}
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, msg in messages %}
+                {% if category.startswith('add_movie_') %}
+                    <div class="message {{ category }}">{{ msg }}</div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Button to show movie form -->
+    <button id="showAddMovieForm" class="add_hall">Add New Movie ▼</button>
+
+    <div id="addMovieForm" style="display:none; margin-top: 20px;">
+        <form method="POST" enctype="multipart/form-data">
+            <input type="text" name="title" placeholder="Title" required><br>
+            <textarea name="description" placeholder="Description" rows="3" cols="30" required></textarea><br>
+            <input type="number" name="duration" placeholder="Duration (minutes)" min="1" required><br>
+            <input type="file" name="poster" accept="image/*"><br><br>
+            <button type="submit" name="add_movie" class="add_hall">Submit</button>
+        </form>
+    </div>
+
+
+    <!-- JS TOGGLES -->
+    <script>
+        // Toggle hall form
+        const btnHall = document.getElementById('showAddHallForm');
+        const formHall = document.getElementById('addHallForm');
+        btnHall.addEventListener('click', function() {
+            const isHidden = formHall.style.display === 'none';
+            formHall.style.display = isHidden ? 'block' : 'none';
+            btnHall.textContent = isHidden ? "Hide Form ▲" : "Add New Hall ▼";
+        });
+
+        // Toggle movie form
+        const btnMovie = document.getElementById('showAddMovieForm');
+        const formMovie = document.getElementById('addMovieForm');
+        btnMovie.addEventListener('click', function() {
+            const isHidden = formMovie.style.display === 'none';
+            formMovie.style.display = isHidden ? 'block' : 'none';
+            btnMovie.textContent = isHidden ? "Hide Form ▲" : "Add New Movie ▼";
         });
     </script>
 
