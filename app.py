@@ -14,13 +14,47 @@ def home():
     conn = get_db_connection()
     cur = conn.cursor()
 
-    cur.execute("SELECT id, title, genre, description, poster, duration FROM movies ORDER BY id;")
+    # Select movies that have sessions
+    cur.execute("""
+            SELECT DISTINCT m.id, m.title, m.genre, m.description, m.poster, m.duration
+            FROM movies m
+            JOIN sessions s ON s.movie_id = m.id
+            ORDER BY m.id;
+        """)
     movies = cur.fetchall()
 
     cur.close()
     conn.close()
 
     return render_template("index.html", movies=movies)
+
+
+@app.route("/movie/<int:movie_id>")
+def movie_sessions(movie_id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute(
+        "SELECT id, title, genre, description, duration, poster FROM movies WHERE id=%s;",
+        (movie_id,)
+    )
+    movie = cur.fetchone()
+
+    # Get all sessions for movie
+    cur.execute("""
+        SELECT s.id, s.datetime, s.price, h.name
+        FROM sessions s
+        JOIN halls h ON s.hall_id = h.id
+        WHERE s.movie_id=%s
+        ORDER BY s.datetime;
+    """, (movie_id,))
+    sessions = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return render_template("movie_sessions.html", movie=movie, sessions=sessions)
+
 
 # Registration page
 @app.route("/register", methods=["GET", "POST"])
@@ -228,6 +262,12 @@ def admin_panel():
             hall_id = request.form["hall_id"]
             datetime_val = request.form["datetime"]
             price = request.form["price"]
+
+            print(price)
+            print(type(price))
+            if int(price) > 9999:
+                flash("Price cannot exceed 9999!", "add_session_error")
+                return redirect(url_for("admin_panel"))
 
             # Check if a session already exists
             cur.execute("""

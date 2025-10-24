@@ -25,7 +25,7 @@
 
     <div class="movies">
     {% for m in movies %}
-        <div class="movie-card">
+        <div class="movie-card" onclick="window.location.href='/movie/{{ m[0] }}';">
             <img src="{{ url_for('static', filename='posters/' + m[4]) }}" alt="{{ m[1] }}">
             <h2>Title: {{ m[1] }}</h2>
             <p><strong>Genre:</strong> {{ m[2] }}</p>
