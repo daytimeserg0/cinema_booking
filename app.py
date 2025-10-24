@@ -11,7 +11,16 @@ app.secret_key = "your_secret_key"
 # Home page
 @app.route("/")
 def home():
-    return render_template("index.html")
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("SELECT id, title, genre, description, poster, duration FROM movies ORDER BY id;")
+    movies = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return render_template("index.html", movies=movies)
 
 # Registration page
 @app.route("/register", methods=["GET", "POST"])
@@ -160,6 +169,7 @@ def admin_panel():
         # ---------------- ADD MOVIE ----------------
         if request.method == "POST" and "add_movie" in request.form:
             title = request.form["title"]
+            genre = request.form["genre"]
             description = request.form["description"]
             duration = request.form["duration"]
             poster_file = request.files.get("poster")
@@ -176,8 +186,8 @@ def admin_panel():
                 flash("Movie already exists!", "add_movie_error")
             else:
                 cur.execute(
-                    "INSERT INTO movies (title, description, duration, poster) VALUES (%s, %s, %s, %s);",
-                    (title, description, duration, poster_file.filename)
+                    "INSERT INTO movies (title, genre, description, duration, poster) VALUES (%s, %s, %s, %s, %s);",
+                    (title, genre, description, duration, poster_file.filename)
                 )
                 conn.commit()
                 flash(f"Movie '{title}' added successfully!", "add_movie_success")
@@ -251,7 +261,7 @@ def admin_panel():
         cur.execute("SELECT id, name, rows, seats_per_row FROM halls ORDER BY id;")
         halls = cur.fetchall()
 
-        cur.execute("SELECT id, title, description, duration, poster FROM movies ORDER BY id;")
+        cur.execute("SELECT id, title, genre, description, duration, poster FROM movies ORDER BY id;")
         movies = cur.fetchall()
 
         cur.execute("""
@@ -270,8 +280,6 @@ def admin_panel():
         halls, movies, sessions = [], [], []
 
     return render_template("admin.html", halls=halls, movies=movies, sessions=sessions)
-
-
 
 if __name__ == "__main__":
     app.run(debug=True)

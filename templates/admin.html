@@ -92,6 +92,7 @@
             <tr>
                 <th>ID</th>
                 <th>Title</th>
+                <th>Genre</th>
                 <th>Description</th>
                 <th>Duration (min)</th>
                 <th>Poster</th>
@@ -103,9 +104,10 @@
                     <td>{{ movie[1] }}</td>
                     <td>{{ movie[2] }}</td>
                     <td>{{ movie[3] }}</td>
+                    <td>{{ movie[4] }}</td>
                     <td>
-                        {% if movie[4] %}
-                            <img src="{{ url_for('static', filename='posters/' + movie[4]) }}" alt="Poster" width="60">
+                        {% if movie[5] %}
+                            <img src="{{ url_for('static', filename='posters/' + movie[5]) }}" alt="Poster" width="60">
                         {% else %}
                             No poster
                         {% endif %}
@@ -140,6 +142,7 @@
     <div id="addMovieForm" style="display:none; margin-top: 20px;">
         <form method="POST" enctype="multipart/form-data">
             <input type="text" name="title" placeholder="Title" required><br>
+            <input type="text" name="genre" placeholder="Genre" required><br>
             <textarea name="description" placeholder="Description" rows="3" cols="30" required></textarea><br>
             <input type="number" name="duration" placeholder="Duration (minutes)" min="1" required><br>
             <input type="file" name="poster" accept="image/*"><br><br>

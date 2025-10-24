@@ -3,20 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Cinema Booking</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding-top: 100px; }
-        .btn {
-            display: inline-block;
-            padding: 15px 30px;
-            margin: 20px;
-            font-size: 18px;
-            text-decoration: none;
-            background-color: #007BFF;
-            color: white;
-            border-radius: 5px;
-        }
-        .btn:hover { background-color: #0056b3; }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <h1>Welcome to Cinema Booking</h1>
@@ -32,5 +19,23 @@
         <a href="/register" class="btn">Register</a>
         <a href="/login" class="btn">Login</a>
     {% endif %}
+
+
+    <h1>Now Showing</h1>
+
+    <div class="movies">
+    {% for m in movies %}
+        <div class="movie-card">
+            <img src="{{ url_for('static', filename='posters/' + m[4]) }}" alt="{{ m[1] }}">
+            <h2>Title: {{ m[1] }}</h2>
+            <p><strong>Genre:</strong> {{ m[2] }}</p>
+            <p><strong>Description:</strong> {{ m[3] }}</p>
+            <p><strong>Duration:</strong> {{ m[5] }} minutes</p>
+            {# <a href="{{ url_for('movie_sessions', movie_id=m[0]) }}" class="btn">View Sessions</a> #}
+        </div>
+    {% else %}
+        <p>No movies available at the moment.</p>
+    {% endfor %}
+</div>
 </body>
 </html>
