@@ -142,7 +142,18 @@
     <div id="addMovieForm" style="display:none; margin-top: 20px;">
         <form method="POST" enctype="multipart/form-data">
             <input type="text" name="title" placeholder="Title" required><br>
-            <input type="text" name="genre" placeholder="Genre" required><br>
+            <label>Genres:</label><br>
+            <div id="genreContainer">
+                <span class="genre-option" data-value="Action">Action</span>
+                <span class="genre-option" data-value="Comedy">Comedy</span>
+                <span class="genre-option" data-value="Drama">Drama</span>
+                <span class="genre-option" data-value="Horror">Horror</span>
+                <span class="genre-option" data-value="Sci-Fi">Sci-Fi</span>
+                <span class="genre-option" data-value="Fantasy">Fantasy</span>
+            </div>
+            <!-- Hidden input to submit selected genres -->
+            <input type="hidden" name="genre" id="selectedGenres">
+
             <textarea name="description" placeholder="Description" rows="3" cols="30" required></textarea><br>
             <input type="number" name="duration" placeholder="Duration (minutes)" min="1" required><br>
             <input type="file" name="poster" accept="image/*"><br><br>
@@ -267,6 +278,23 @@
             const isHidden = formSession.style.display === 'none';
             formSession.style.display = isHidden ? 'block' : 'none';
             btnSession.textContent = isHidden ? "Hide Form ▲" : "Add New Session ▼";
+        });
+
+        // Genres form
+        const genreOptions = document.querySelectorAll('.genre-option');
+        const hiddenInput = document.getElementById('selectedGenres');
+
+        genreOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                option.classList.toggle('selected');
+
+                // Gather all selected genres
+                const selected = Array.from(genreOptions)
+                                      .filter(o => o.classList.contains('selected'))
+                                      .map(o => o.dataset.value);
+
+                hiddenInput.value = selected.join('/'); // Set hidden input value
+            });
         });
     </script>
 

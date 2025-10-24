@@ -160,3 +160,18 @@ button[class^="delete_"]:hover {
     background-color: #0056b3;
 }
 
+.genre-option {
+    display: inline-block;
+    padding: 5px 10px;
+    margin: 3px;
+    border: 1px solid #007BFF;
+    border-radius: 5px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.genre-option.selected {
+    background-color: #007BFF;
+    color: white;
+}
+

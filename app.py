@@ -214,7 +214,6 @@ def admin_panel():
 
             if poster and poster[0]:
                 poster_path = os.path.join(UPLOAD_FOLDER, poster[0])
-                print(poster_path)
                 if os.path.exists(poster_path):
                     os.remove(poster_path)
             if linked_sessions:
