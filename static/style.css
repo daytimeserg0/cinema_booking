@@ -241,3 +241,16 @@ button[class^="delete_"]:hover {
 .buy-btn:hover {
     background-color: #0056b3;
 }
+
+.cancel-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.cancel-btn:hover {
+    background-color: #b02a37;
+}

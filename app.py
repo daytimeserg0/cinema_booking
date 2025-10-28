@@ -178,12 +178,52 @@ def logout():
     session.clear()  # clears all session data
     return redirect("/")
 
-# Account page (protected example)
-@app.route("/account")
+# Account page
+@app.route("/account", methods=["GET", "POST"])
 def account():
-    if "username" not in session:
-        return redirect("/login")
-    return f"Hello, {session['username']}! This is your account page."
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    user_id = session["user_id"]
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    # --- Обработка удаления брони ---
+    if request.method == "POST" and "cancel_booking" in request.form:
+        booking_id = request.form["cancel_booking"]
+
+        # Проверяем, что бронь принадлежит пользователю
+        cur.execute("DELETE FROM bookings WHERE id = %s AND user_id = %s;", (booking_id, user_id))
+        conn.commit()
+
+        flash("Booking cancelled successfully!", "success")
+        return redirect(url_for("account"))
+
+    # --- Получаем все брони пользователя ---
+    cur.execute("""
+        SELECT 
+            b.id, 
+            m.title, 
+            s.datetime, 
+            h.name AS hall_name,
+            b.seat_row, 
+            b.seat_number,
+            s.price
+        FROM bookings b
+        JOIN sessions s ON b.session_id = s.id
+        JOIN movies m ON s.movie_id = m.id
+        JOIN halls h ON s.hall_id = h.id
+        WHERE b.user_id = %s
+        ORDER BY s.datetime DESC;
+    """, (user_id,))
+    bookings = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return render_template("account.html", bookings=bookings)
+
 
 
 UPLOAD_FOLDER = os.path.join('static', 'posters')

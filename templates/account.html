@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your Account</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Hello, {{ session['username'] }}</h1>
+    <h2>Your Bookings</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if bookings %}
+        <table>
+            <tr>
+                <th>Movie</th>
+                <th>Date & Time</th>
+                <th>Hall</th>
+                <th>Seat</th>
+                <th>Price</th>
+                <th>Action</th>
+            </tr>
+            {% for b in bookings %}
+            <tr>
+                <td>{{ b[1] }}</td>
+                <td>{{ b[2].strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>{{ b[3] }}</td>
+                <td>Row {{ b[4] }}, Seat {{ b[5] }}</td>
+                <td>{{ b[6] }}</td>
+                <td>
+                    <form method="POST">
+                        <button type="submit" name="cancel_booking" value="{{ b[0] }}" class="cancel-btn">Cancel</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No bookings yet.</p>
+    {% endif %}
+
+    <p><a href="/">Back to Home</a></p>
+</body>
+</html>
