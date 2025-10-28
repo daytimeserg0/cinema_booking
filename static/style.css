@@ -175,3 +175,69 @@ button[class^="delete_"]:hover {
     color: white;
 }
 
+/* Movie info */
+.movie-info {
+    margin-bottom: 20px;
+}
+
+/* Horizontal scroll for dates */
+.dates-container {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 10px 0;
+    border-bottom: 2px solid #ccc;
+    margin-bottom: 15px;
+}
+
+.date-btn {
+    flex-shrink: 0;
+    background-color: #f0f0f0;
+    color: #333;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 8px 15px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.date-btn:hover {
+    background-color: #007bff;
+    color: white;
+    transform: scale(1.05);
+}
+
+.date-btn.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #0056b3;
+}
+
+/* Sessions table */
+.sessions-container {
+    display: none;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.sessions-container.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.buy-btn {
+    background-color: #23c920;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.buy-btn:hover {
+    background-color: #0056b3;
+}

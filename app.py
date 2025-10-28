@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, redirect, session, url_for, f
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from db import get_db_connection
+from collections import defaultdict
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
@@ -40,7 +41,6 @@ def movie_sessions(movie_id):
     )
     movie = cur.fetchone()
 
-    # Get all sessions for movie
     cur.execute("""
         SELECT s.id, s.datetime, s.price, h.name
         FROM sessions s
@@ -48,12 +48,62 @@ def movie_sessions(movie_id):
         WHERE s.movie_id=%s
         ORDER BY s.datetime;
     """, (movie_id,))
-    sessions = cur.fetchall()
+    all_sessions = cur.fetchall()
+
+    # Group by date
+    from collections import defaultdict
+    sessions_by_date = defaultdict(list)
+    for s in all_sessions:
+        date_str = s[1].strftime("%Y-%m-%d")
+        sessions_by_date[date_str].append(s)
 
     cur.close()
     conn.close()
 
-    return render_template("movie_sessions.html", movie=movie, sessions=sessions)
+    return render_template("movie_sessions.html", movie=movie, sessions_by_date=sessions_by_date)
+
+
+@app.route("/buy_ticket/<int:session_id>", methods=["GET", "POST"])
+def buy_ticket(session_id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT s.id, s.price, h.name, h.rows, h.seats_per_row
+        FROM sessions s
+        JOIN halls h ON s.hall_id = h.id
+        WHERE s.id = %s;
+    """, (session_id,))
+    selected_session = cur.fetchone()
+
+    # Get taken seats from bookings
+    cur.execute("""
+        SELECT seat_row, seat_number FROM bookings WHERE session_id = %s;
+    """, (session_id,))
+    taken = cur.fetchall()
+
+    if request.method == "POST":
+        user_id = session.get("user_id")
+        selected_seats = request.form.get("selected_seats")
+
+        if selected_seats:
+            seats = [tuple(map(int, seat.split('-'))) for seat in selected_seats.split(',')]
+            for seat_row, seat_number in seats:
+                cur.execute("""
+                            INSERT INTO bookings (user_id, session_id, seat_row, seat_number)
+                            VALUES (%s, %s, %s, %s)
+                        """, (user_id, session_id, seat_row, seat_number))
+            conn.commit()
+
+            cur.close()
+            conn.close()
+
+            return redirect(url_for("account"))
+
+    cur.close()
+    conn.close()
+
+    return render_template("buy_ticket.html", selected_session=selected_session, taken=taken)
 
 
 # Registration page

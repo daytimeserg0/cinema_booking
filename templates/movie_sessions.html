@@ -6,33 +6,78 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <!-- Movie Details -->
-    <h1>{{ movie[1] }}</h1>
-    <p><strong>Genre:</strong> {{ movie[2] }}</p>
-    <p><strong>Description:</strong> {{ movie[3] }}</p>
-    <p><strong>Duration:</strong> {{ movie[4] }} minutes</p>
+    <p><a href="/">Back to Home</a></p>
 
-    <!-- Movie Sessions -->
-    <h2>Sessions</h2>
-    {% if sessions %}
-        <table>
-            <tr>
-                <th>Date & Time</th>
-                <th>Hall</th>
-                <th>Price</th>
-            </tr>
-            {% for s in sessions %}
-            <tr>
-                <td>{{ s[1] }}</td>
-                <td>{{ s[3] }}</td>
-                <td>{{ s[2] }}</td>
-            </tr>
+    <!-- Movie Info -->
+    <div class="movie-info">
+        <h1>{{ movie[1] }}</h1>
+        <p><strong>Genre:</strong> {{ movie[2] }}</p>
+        <p><strong>Description:</strong> {{ movie[3] }}</p>
+        <p><strong>Duration:</strong> {{ movie[4] }} minutes</p>
+    </div>
+
+    <h2>Available Dates</h2>
+
+
+    {% if sessions_by_date %}
+        <!-- Date Buttons -->
+        <div class="dates-container">
+            {% for date, sessions in sessions_by_date.items() %}
+                <button class="date-btn" onclick="showSessions('{{ date }}')">{{ date }}</button>
             {% endfor %}
-        </table>
+        </div>
+
+        <!-- Sessions per date -->
+        {% for date, sessions in sessions_by_date.items() %}
+            <div id="sessions-{{ date }}" class="sessions-container">
+                <table>
+                    <tr>
+                        <th>Time</th>
+                        <th>Hall</th>
+                        <th>Price</th>
+                        <th>Action</th>
+                    </tr>
+                    {% for s in sessions %}
+                    <tr>
+                        <td>{{ s[1].strftime('%H:%M') }}</td>
+                        <td>{{ s[3] }}</td>
+                        <td>{{ s[2] }}</td>
+                        <td>
+                            {% if session.username %}
+                                <button class="buy-btn" onclick="window.location.href='/buy_ticket/{{ s[0] }}'">
+                                    Buy Ticket
+                                </button>
+                            {% else %}
+                                <button class="buy-btn" onclick="promptLogin()">Buy Ticket</button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        {% endfor %}
     {% else %}
         <p>No sessions available for this movie.</p>
     {% endif %}
 
     <a href="{{ url_for('home') }}">Back to home</a>
+
+    <script>
+        // Show sessions for selected date
+        function showSessions(date) {
+            document.querySelectorAll('.sessions-container').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.date-btn').forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById(`sessions-${date}`).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Show login/register suggestion
+        function promptLogin() {
+            if (confirm("You need to log in or register to buy a ticket. Go to login page?")) {
+                window.location.href = "{{ url_for('login') }}";
+            }
+        }
+    </script>
 </body>
 </html>

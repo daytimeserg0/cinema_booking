@@ -1,0 +1,125 @@
+/* --- General page styling --- */
+body {
+    text-align: center;
+    font-family: Arial, sans-serif;
+}
+
+/* --- Screen indicator --- */
+.screen-label {
+    color: #555;
+    margin-bottom: 5px;
+}
+
+.screen {
+    background-color: #ccc;
+    width: 80%;
+    margin: 20px auto;
+    height: 15px;
+    border-radius: 10px;
+}
+
+/* --- Hall container --- */
+.hall-container {
+    display: inline-block;
+    margin-top: 20px;
+}
+
+/* --- Each row --- */
+.hall-container .row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 6px;
+}
+
+/* --- Row numbers --- */
+.hall-container .row .row-number {
+    width: 30px;
+    text-align: center;
+    font-weight: bold;
+    color: #444;
+}
+
+/* --- Seats grid --- */
+.hall-container .row .hall {
+    display: grid;
+    grid-template-columns: repeat(var(--seats-per-row), 40px);
+    gap: 6px;
+    justify-content: center;
+}
+
+/* --- Seat styling --- */
+.seat {
+    width: 40px;
+    height: 40px;
+    background-color: #28a745;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: white;
+    font-weight: bold;
+}
+
+.seat.taken {
+    background-color: gray;
+    border-radius: 50%;
+    cursor: not-allowed;
+    color: transparent;
+}
+
+.seat.selected {
+    background-color: #007bff;
+}
+
+/* --- Summary --- */
+.summary {
+    margin-top: 20px;
+    font-size: 18px;
+}
+
+/* --- Buy button --- */
+.buy-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    font-size: 16px;
+    margin-top: 15px;
+    padding: 10px 25px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.buy-btn:hover {
+    background-color: #0056b3;
+}
+
+/* --- Legend --- */
+.legend {
+    margin-top: 25px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    font-size: 14px;
+    color: #333;
+}
+
+.legend div {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.legend-box {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+}
+
+
+.legend .free .legend-box { background-color: #28a745; }
+.legend .selected .legend-box { background-color: #007bff; }
+.legend .taken .legend-box { background-color: gray; border-radius: 50%; }

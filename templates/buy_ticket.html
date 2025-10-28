@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Buy Ticket</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='buying.css') }}">
+
+</head>
+<body>
+    <h1>Hall: {{ selected_session[2] }}</h1>
+    <p>Price per seat: {{ selected_session[1] }}</p>
+
+    <div class="screen-label">Screen</div>
+    <div class="screen"></div>
+
+    <div class="hall-container">
+        {% for row in range(selected_session[3]) %}
+        <div class="row">
+            <div class="row-number">{{ row+1 }}</div>
+
+            <div class="hall" style="--seats-per-row: {{ selected_session[4] }};">
+                {% for seat in range(selected_session[4]) %}
+                    {% set taken_flag = (row+1, seat+1) in taken %}
+                    <div
+                        class="seat {% if taken_flag %}taken{% endif %}"
+                        data-row="{{ row+1 }}"
+                        data-seat="{{ seat+1 }}">
+                        {{ seat+1 }}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="row-number">{{ row+1 }}</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="summary">
+        Selected seats: <span id="seatCount">0</span> |
+        Total price: <span id="totalPrice">0</span>
+    </div>
+
+    <form id="buyForm" method="POST" action="{{ url_for('buy_ticket', session_id=selected_session[0]) }}">
+        <input type="hidden" name="selected_seats" id="selectedSeats">
+        <button type="submit" class="buy-btn">Buy Selected</button>
+    </form>
+
+    <div class="legend">
+        <div class="free"><div class="legend-box"></div>Free</div>
+        <div class="selected"><div class="legend-box"></div>Selected</div>
+        <div class="taken"><div class="legend-box"></div>Taken</div>
+    </div>
+
+    <script>
+        const seats = document.querySelectorAll('.seat:not(.taken)');
+        const selectedSeatsInput = document.getElementById('selectedSeats');
+        const seatCount = document.getElementById('seatCount');
+        const totalPrice = document.getElementById('totalPrice');
+        const seatPrice = {{ selected_session[1] }};
+        let selected = [];
+
+        seats.forEach(seat => {
+            seat.addEventListener('click', () => {
+                const seatPos = seat.dataset.row + '-' + seat.dataset.seat;
+                if (selected.includes(seatPos)) {
+                    selected = selected.filter(s => s !== seatPos);
+                    seat.classList.remove('selected');
+                } else {
+                    selected.push(seatPos);
+                    seat.classList.add('selected');
+                }
+
+                selectedSeatsInput.value = selected.join(',');
+                seatCount.textContent = selected.length;
+                totalPrice.textContent = (selected.length * seatPrice).toFixed(2);
+            });
+        });
+    </script>
+</body>
+</html>
