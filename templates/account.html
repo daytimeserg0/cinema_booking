@@ -1,51 +1,90 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Your Account</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <h1>Hello, {{ session['username'] }}</h1>
-    <h2>Your Bookings</h2>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="flash {{ category }}">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-
-    {% if bookings %}
-        <table>
-            <tr>
-                <th>Movie</th>
-                <th>Date & Time</th>
-                <th>Hall</th>
-                <th>Seat</th>
-                <th>Price</th>
-                <th>Action</th>
-            </tr>
-            {% for b in bookings %}
-            <tr>
-                <td>{{ b[1] }}</td>
-                <td>{{ b[2].strftime('%Y-%m-%d %H:%M') }}</td>
-                <td>{{ b[3] }}</td>
-                <td>Row {{ b[4] }}, Seat {{ b[5] }}</td>
-                <td>{{ b[6] }}</td>
-                <td>
-                    <form method="POST">
-                        <button type="submit" name="cancel_booking" value="{{ b[0] }}" class="cancel-btn">Cancel</button>
-                    </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
-    {% else %}
-        <p>No bookings yet.</p>
-    {% endif %}
-
-    <p><a href="/">Back to Home</a></p>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Мои билеты — Cinema Booking{% endblock %}
+{% macro booking_card(ticket, past=false) %}
+  <article class="account-ticket {% if ticket.is_cancelled %}is-cancelled{% endif %}">
+    <a href="{{ url_for('booking_detail', reference=ticket.reference) }}"
+       class="account-poster">
+      <img src="{{ poster_url(ticket.poster) }}"
+           alt="Постер фильма «{{ ticket.title }}»"
+           width="120"
+           height="172"
+           loading="lazy">
+    </a>
+    <div class="account-ticket-content">
+      <div class="account-ticket-top">
+        <span class="eyebrow">{{ ticket.hall_name }}</span>
+        <span class="status-pill {% if ticket.is_cancelled %}cancelled{% elif past %}past{% endif %}">{{ 'Отменён' if ticket.is_cancelled else ('Сеанс завершён' if past else 'Скоро в кино') }}</span>
+      </div>
+      <h3>
+        <a href="{{ url_for('booking_detail', reference=ticket.reference) }}">{{ ticket.title }}</a>
+      </h3>
+      <p class="account-date">{{ ticket.datetime|cinema_date }} <span>·</span> {{ ticket.datetime|cinema_time }}</p>
+      <p class="account-seats">
+        {% for seat in ticket.seats %}Ряд {{ seat.row }}, место {{ seat.number }}{% if not loop.last %} <span>·</span> {% endif %}{% endfor %}
+      </p>
+      <div class="account-ticket-bottom">
+        <span class="muted">№ {{ ticket.reference }}</span>
+        <strong>{{ ticket.total|money }}</strong>
+      </div>
+    </div>
+    <div class="account-ticket-actions">
+      <a class="button button-small button-outline"
+         href="{{ url_for('booking_detail', reference=ticket.reference) }}">Открыть билет <span aria-hidden="true">↗</span>
+      </a>
+      {% if ticket.can_cancel and ticket.user_id == current_user.id %}
+        <form method="post"
+              action="{{ url_for('cancel_booking', reference=ticket.reference) }}"
+              data-confirm="Отменить бронирование на фильм «{{ ticket.title }}»?">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="text-button" type="submit">Отменить бронь</button>
+        </form>
+      {% endif %}
+    </div>
+  </article>
+{% endmacro %}
+{% block content %}
+  <div class="container page-content">
+    <div class="section-heading account-heading">
+      <div>
+        <span class="eyebrow">Личный кабинет · {{ current_user.username }}</span>
+        <h1>
+          Мои билеты<span class="accent">.</span>
+        </h1>
+        <p class="muted">Все ваши истории на большом экране — в одном месте.</p>
+      </div>
+      <a class="button button-outline" href="{{ url_for('home') }}">Выбрать фильм <span aria-hidden="true">↗</span>
+      </a>
+    </div>
+    <section class="account-section">
+      <h2 class="subheading">
+        Ближайшие сеансы <span>{{ upcoming|length }}</span>
+      </h2>
+      {% if upcoming %}
+        <div class="account-tickets">{% for ticket in upcoming %}{{ booking_card(ticket) }}{% endfor %}</div>
+      {% else %}
+        <div class="empty-state">
+          <span class="empty-icon" aria-hidden="true">⌑</span>
+          <h3>Впереди столько историй</h3>
+          <p>
+            Пока у вас нет билетов на ближайшие сеансы.
+            <br>
+            Самое время выбрать фильм.
+          </p>
+          <a class="button button-primary"
+             href="{{ url_for('home') }}">Посмотреть афишу <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+      {% endif %}
+    </section>
+    <section class="account-section">
+      <h2 class="subheading">
+        История бронирований <span>{{ history|length }}</span>
+      </h2>
+      {% if history %}
+        <div class="account-tickets">{% for ticket in history %}{{ booking_card(ticket, true) }}{% endfor %}</div>
+      {% else %}
+        <p class="history-empty">Здесь появятся прошедшие сеансы и отменённые бронирования.</p>
+      {% endif %}
+    </section>
+  </div>
+{% endblock %}

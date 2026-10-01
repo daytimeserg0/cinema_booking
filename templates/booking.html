@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Билет {{ ticket.reference }} — Cinema Booking{% endblock %}
+{% block content %}
+  <div class="container page-content ticket-page">
+    <a class="back-link" href="{{ url_for('account') }}">
+      <span aria-hidden="true">←</span> Мои билеты</a>
+    <div class="ticket-heading">
+      <span class="ticket-check {% if ticket.is_cancelled %}cancelled{% endif %}"
+            aria-hidden="true">{{ '×' if ticket.is_cancelled else '✓' }}</span>
+      <span class="eyebrow">{{ 'Бронирование отменено' if ticket.is_cancelled else 'До встречи в кино' }}</span>
+      <h1>
+        {{ 'Билет отменён' if ticket.is_cancelled else 'Ваш билет готов' }}<span class="accent">.</span>
+      </h1>
+      <p>{{ 'Места снова доступны для бронирования.' if ticket.is_cancelled else 'Сохраните номер брони и покажите его в кассе перед сеансом.' }}</p>
+    </div>
+    <article class="cinema-ticket {% if ticket.is_cancelled %}ticket-cancelled{% endif %}">
+      <div class="ticket-main">
+        <img class="ticket-poster"
+             src="{{ poster_url(ticket.poster) }}"
+             alt=""
+             width="180"
+             height="258">
+        <div class="ticket-info">
+          <span class="eyebrow">Cinema Booking</span>
+          <h2>{{ ticket.title }}</h2>
+          <div class="ticket-meta-grid">
+            <div>
+              <span>Дата</span>
+              <strong>{{ ticket.datetime|cinema_date }}</strong>
+            </div>
+            <div>
+              <span>Время</span>
+              <strong>{{ ticket.datetime|cinema_time }}</strong>
+            </div>
+            <div>
+              <span>Зал</span>
+              <strong>{{ ticket.hall_name }}</strong>
+            </div>
+            <div>
+              <span>Места</span>
+              <strong>
+                {% for seat in ticket.seats %}Ряд {{ seat.row }} · {{ seat.number }}{% if not loop.last %}
+                  <br>
+                {% endif %}
+{% endfor %}
+</strong>
+</div>
+</div>
+</div>
+</div>
+<div class="ticket-stub">
+  <span class="eyebrow">Номер брони</span>
+  <strong class="ticket-reference">{{ ticket.reference }}</strong>
+  <div class="ticket-barcode" aria-hidden="true"></div>
+  <span class="ticket-status {% if ticket.is_cancelled %}cancelled{% endif %}">{{ 'Отменён' if ticket.is_cancelled else 'Забронирован' }}</span>
+  <div class="ticket-price">
+    <span>К оплате в кассе</span>
+    <strong>{{ ticket.total|money }}</strong>
+  </div>
+</div>
+</article>
+<div class="ticket-actions">
+  <a class="button button-outline" href="{{ url_for('home') }}">Вернуться к афише</a>
+  <button type="button" class="button button-primary" data-print>
+    Сохранить / распечатать <span aria-hidden="true">↗</span>
+  </button>
+</div>
+{% if ticket.can_cancel and ticket.user_id == current_user.id %}
+  <form class="ticket-cancel-form"
+        method="post"
+        action="{{ url_for('cancel_booking', reference=ticket.reference) }}"
+        data-confirm="Отменить бронирование? Все выбранные места снова станут свободными.">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="text-button" type="submit">Отменить бронирование</button>
+  </form>
+{% endif %}
+</div>
+{% endblock %}

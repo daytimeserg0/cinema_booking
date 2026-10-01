@@ -1,29 +1,80 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Register - Cinema Booking</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding-top: 100px; }
-        form { display: inline-block; text-align: left; }
-        input { display: block; margin: 10px 0; padding: 10px; width: 250px; }
-        button { padding: 10px 20px; font-size: 16px; background-color: #28a745; color: white; border: none; border-radius: 5px; }
-        button:hover { background-color: #218838; }
-    </style>
-</head>
-<body>
-    <h1>Register</h1>
-    {% if message %}
-        <p style="color:red;">{{ message }}</p>
-    {% endif %}
-    <form method="POST">
-        <label>Username:</label>
-        <input type="text" name="username" required>
-        <label>Password:</label>
-        <input type="password" name="password" required>
-        <button type="submit">Register</button>
-    </form>
-    <p><a href="{{ url_for('login') }}">Already have an account?</a></p>
-    <p><a href="/">Back to Home</a></p>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Регистрация — Cinema Booking{% endblock %}
+{% block content %}
+  <div class="container auth-page">
+    <div class="auth-art">
+      <img src="{{ url_for('static', filename='posters/north.svg') }}"
+           alt=""
+           width="600"
+           height="860">
+      <div class="auth-art-shade"></div>
+      <div class="auth-art-copy">
+        <span class="eyebrow">Cinema Booking</span>
+        <h2>
+          Новые истории.
+          <br>
+          Ваши впечатления.
+        </h2>
+        <p>Найдите время для большого кино.</p>
+      </div>
+    </div>
+    <section class="auth-panel">
+      <span class="eyebrow">Первый ряд вашей истории</span>
+      <h1>
+        Начнём с вас<span class="accent">.</span>
+      </h1>
+      <p class="auth-intro">Один аккаунт — и все ваши билеты под рукой.</p>
+      {% if message %}
+        <div class="notice notice-error" role="alert">{{ message }}</div>
+      {% endif %}
+      <form method="post" class="stack-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="next" value="{{ next }}">
+        <label>
+          Логин<input type="text"
+       name="username"
+       value="{{ form.get('username', '') }}"
+       placeholder="Придумайте логин"
+       autocomplete="username"
+       required
+       minlength="3"
+       maxlength="32"
+       autofocus>
+          <small>От 3 до 32 символов: буквы, цифры, дефис и подчёркивание</small>
+        </label>
+        <label>
+          Пароль
+          <div class="password-field">
+            <input type="password"
+                   name="password"
+                   placeholder="Не менее 8 символов"
+                   autocomplete="new-password"
+                   required
+                   minlength="8"
+                   maxlength="128"
+                   id="register-password">
+            <button type="button"
+                    class="password-toggle"
+                    data-password="register-password"
+                    aria-label="Показать пароль">Показать</button>
+          </div>
+        </label>
+        <label>
+          Повторите пароль<input type="password"
+       name="confirm_password"
+       placeholder="Ещё раз, чтобы не ошибиться"
+       autocomplete="new-password"
+       required
+       minlength="8"
+       maxlength="128">
+        </label>
+        <button type="submit" class="button button-primary button-full">
+          Создать аккаунт <span aria-hidden="true">↗</span>
+        </button>
+      </form>
+      <p class="auth-switch">
+        Уже есть аккаунт? <a href="{{ url_for('login', next=next) }}">Войти</a>
+      </p>
+    </section>
+  </div>
+{% endblock %}

@@ -1,302 +1,397 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Admin Panel - Cinema Booking</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <p><a href="/">Back to Home</a></p>
-    <h1>Admin Panel</h1>
-    <p>Welcome, {{ session.username }}!</p>
-
-    <!-- ---------------- HALLS SECTION ---------------- -->
-    <h2>Existing Halls</h2>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, msg in messages %}
-                    {% if category.startswith('delete_hall_') %}
-                        <div class="message {{ category }}">{{ msg }}</div>
-                    {% endif %}
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-      {% if halls %}
-          <table>
-              <tr>
-                  <th>ID</th>
-                  <th>Name</th>
-                  <th>Rows</th>
-                  <th>Seats per Row</th>
-                  <th>Action</th>
-              </tr>
-              {% for hall in halls %}
-              <tr>
-                  <td>{{ hall[0] }}</td>
-                  <td>{{ hall[1] }}</td>
-                  <td>{{ hall[2] }}</td>
-                  <td>{{ hall[3] }}</td>
-                  <td>
-                      <form method="POST" style="display:inline;">
-                          <button type="submit" name="delete_hall" class="delete_hall" value="{{ hall[0] }}" onclick="return confirm('Are you sure you want to delete this hall? If it has linked sessions they will also be deleted');">
-                              Delete
-                          </button>
-                      </form>
-                  </td>
-              </tr>
-              {% endfor %}
-          </table>
-      {% else %}
-          <p>No halls available.</p>
-      {% endif %}
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, msg in messages %}
-                {% if category.startswith('add_hall_') %}
-                    <div class="message {{ category }}">{{ msg }}</div>
-                {% endif %}
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-
-    <!-- Button to show the form -->
-    <button id="showAddHallForm" class="add_hall">Add New Hall ▼</button>
-
-    <div id="addHallForm" style="display:none; margin-top: 20px;">
-
-        <form method="POST">
-            <input type="text" name="name" placeholder="Hall Name" required><br>
-            <input type="number" name="rows" placeholder="Number of Rows" min="1" required><br>
-            <input type="number" name="seats_per_row" placeholder="Seats per Row" min="1" required><br><br>
-            <button type="submit" name="add_hall" class="add_hall">Submit</button>
-        </form>
+{% extends "base.html" %}
+{% block title %}Управление кинотеатром — Cinema Booking{% endblock %}
+{% block content %}
+  <div class="container page-content admin-page">
+    <div class="section-heading">
+      <div>
+        <span class="eyebrow">Панель администратора</span>
+        <h1>
+          За кулисами кино<span class="accent">.</span>
+        </h1>
+        <p class="muted">Фильмы, залы и расписание вашего кинотеатра.</p>
+      </div>
+      <a class="button button-outline" href="{{ url_for('home') }}">Открыть афишу <span aria-hidden="true">↗</span>
+      </a>
     </div>
-
-
-    <!-- ---------------- MOVIES SECTION ---------------- -->
-    <hr>
-    <h2>Existing Movies</h2>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, msg in messages %}
-                {% if category.startswith('delete_movie_') %}
-                    <div class="message {{ category }}">{{ msg }}</div>
-                {% endif %}
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-
-    {% if movies %}
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Title</th>
-                <th>Genre</th>
-                <th>Description</th>
-                <th>Duration (min)</th>
-                <th>Poster</th>
-                <th>Action</th>
-            </tr>
-            {% for movie in movies %}
-                <tr>
-                    <td>{{ movie[0] }}</td>
-                    <td>{{ movie[1] }}</td>
-                    <td>{{ movie[2] }}</td>
-                    <td>{{ movie[3] }}</td>
-                    <td>{{ movie[4] }}</td>
-                    <td>
-                        {% if movie[5] %}
-                            <img src="{{ url_for('static', filename='posters/' + movie[5]) }}" alt="Poster" width="60">
-                        {% else %}
-                            No poster
-                        {% endif %}
-                    </td>
-                    <td>
-                        <form method="POST" style="display:inline;">
-                            <button type="submit" name="delete_movie" class="delete_movie" value="{{ movie[0] }}" onclick="return confirm('Are you sure you want to delete this movie? If it has linked sessions they will also be deleted');">
-                                Delete
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-            {% endfor %}
-        </table>
-    {% else %}
-        <p>No movies available.</p>
-    {% endif %}
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, msg in messages %}
-                {% if category.startswith('add_movie_') %}
-                    <div class="message {{ category }}">{{ msg }}</div>
-                {% endif %}
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-
-    <!-- Button to show movie form -->
-    <button id="showAddMovieForm" class="add_movie">Add New Movie ▼</button>
-
-    <div id="addMovieForm" style="display:none; margin-top: 20px;">
-        <form method="POST" enctype="multipart/form-data">
-            <input type="text" name="title" placeholder="Title" required><br>
-            <label>Genres:</label><br>
-            <div id="genreContainer">
-                <span class="genre-option" data-value="Action">Action</span>
-                <span class="genre-option" data-value="Comedy">Comedy</span>
-                <span class="genre-option" data-value="Drama">Drama</span>
-                <span class="genre-option" data-value="Horror">Horror</span>
-                <span class="genre-option" data-value="Sci-Fi">Sci-Fi</span>
-                <span class="genre-option" data-value="Fantasy">Fantasy</span>
+    <div class="stat-grid">
+      <a class="stat-card" href="#movies">
+        <span>Фильмы</span>
+        <strong>{{ stats.movies }}</strong>
+        <i aria-hidden="true">↗</i>
+      </a>
+      <a class="stat-card" href="#halls">
+        <span>Кинозалы</span>
+        <strong>{{ stats.halls }}</strong>
+        <i aria-hidden="true">↗</i>
+      </a>
+      <a class="stat-card" href="#sessions">
+        <span>Предстоящие сеансы</span>
+        <strong>{{ stats.sessions }}</strong>
+        <i aria-hidden="true">↗</i>
+      </a>
+      <div class="stat-card">
+        <span>Активные бронирования</span>
+        <strong>{{ stats.bookings }}</strong>
+        <i aria-hidden="true">⌑</i>
+      </div>
+    </div>
+    <nav class="admin-nav" aria-label="Разделы управления">
+      <a href="#movies">01 <span>Фильмы</span>
+      </a>
+      <a href="#halls">02 <span>Залы</span>
+      </a>
+      <a href="#sessions">03 <span>Сеансы</span>
+      </a>
+    </nav>
+    <section class="admin-section" id="movies">
+      <div class="section-heading">
+        <h2>Фильмы</h2>
+        <span class="section-note">Ваша коллекция историй</span>
+      </div>
+      <div class="admin-layout">
+        <div class="admin-editor">
+          <h3>{{ 'Редактировать фильм' if edit_movie else 'Добавить фильм' }}</h3>
+          <form method="post" enctype="multipart/form-data" class="stack-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden"
+                   name="action"
+                   value="{{ 'edit_movie' if edit_movie else 'add_movie' }}">
+            {% if edit_movie %}
+              <input type="hidden" name="movie_id" value="{{ edit_movie.id }}">
+            {% endif %}
+            <label>
+              Название<input type="text"
+       name="title"
+       value="{{ edit_movie.title if edit_movie else '' }}"
+       required
+       maxlength="160"
+       placeholder="Название фильма">
+            </label>
+            <div class="form-row">
+              <label>
+                Жанр<input type="text"
+       name="genre"
+       value="{{ edit_movie.genre if edit_movie else '' }}"
+       required
+       maxlength="80"
+       placeholder="Драма">
+              </label>
+              <label>
+                Длительность, мин<input type="number"
+       name="duration"
+       value="{{ edit_movie.duration if edit_movie else '' }}"
+       required
+       min="1"
+       max="400"
+       placeholder="120">
+              </label>
             </div>
-            <!-- Hidden input to submit selected genres -->
-            <input type="hidden" name="genre" id="selectedGenres">
-
-            <textarea name="description" placeholder="Description" rows="3" cols="30" required></textarea><br>
-            <input type="number" name="duration" placeholder="Duration (minutes)" min="1" required><br>
-            <input type="file" name="poster" accept="image/*"><br><br>
-            <button type="submit" name="add_movie" class="add_movie">Submit</button>
-        </form>
-    </div>
-
-    <!-- ---------------- SESSIONS SECTION ---------------- -->
-    <hr>
-    <h2>Existing Sessions</h2>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, msg in messages %}
-                {% if category.startswith('delete_session_') %}
-                    <div class="message {{ category }}">{{ msg }}</div>
-                {% endif %}
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-
-    {% if sessions %}
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Movie</th>
-                <th>Hall</th>
-                <th>Date & Time</th>
-                <th>Price</th>
-                <th>Action</th>
-            </tr>
-            {% for s in sessions %}
+            <div class="form-row">
+              <label>
+                Год выхода<input type="number"
+       name="release_year"
+       value="{{ edit_movie.release_year if edit_movie else cinema_now().year }}"
+       required
+       min="1895"
+       max="{{ cinema_now().year + 5 }}">
+              </label>
+              <label>
+                Возраст<select name="age_rating">
+                {% for rating in [0, 6, 12, 16, 18] %}
+                  <option value="{{ rating }}"
+                          {% if (edit_movie and edit_movie.age_rating == rating) or (not edit_movie and rating == 12) %}selected{% endif %}>{{ rating }}+</option>
+                {% endfor %}
+                </select>
+              </label>
+            </div>
+            <label>
+              Описание<textarea name="description"
+          rows="4"
+          required
+          minlength="10"
+          maxlength="5000"
+          placeholder="О чём эта история?">{{ edit_movie.description if edit_movie else '' }}</textarea>
+            </label>
+            <label>
+              Постер<input class="file-input"
+       type="file"
+       name="poster"
+       accept="image/jpeg,image/png,image/webp">
+              <small>JPG, PNG или WebP. {% if edit_movie %}Оставьте пустым, чтобы сохранить текущий.{% else %}Можно добавить позже.{% endif %}
+              </small>
+            </label>
+            <button type="submit" class="button button-primary button-full">
+              {{ 'Сохранить изменения' if edit_movie else 'Добавить фильм' }} <span aria-hidden="true">{{ '✓' if edit_movie else '+' }}</span>
+            </button>
+            {% if edit_movie %}
+              <a class="text-link centered" href="{{ url_for('admin_panel') }}#movies">Отменить редактирование</a>
+            {% endif %}
+          </form>
+        </div>
+        <div class="admin-list">
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
                 <tr>
-                    <td>{{ s[0] }}</td>
-                    <td>{{ s[1] }}</td>
-                    <td>{{ s[2] }}</td>
-                    <td>{{ s[3] }}</td>
-                    <td>{{ s[4] }}</td>
-                    <td>
-                        <form method="POST" style="display:inline;">
-                            <button type="submit" name="delete_session" class="delete_session" value="{{ s[0] }}" onclick="return confirm('Are you sure?');">
-                                Delete
-                            </button>
-                        </form>
-                    </td>
+                  <th>Фильм</th>
+                  <th>Длительность</th>
+                  <th>
+                    <span class="sr-only">Действия</span>
+                  </th>
                 </tr>
-            {% endfor %}
-        </table>
-    {% else %}
-        <p>No sessions available.</p>
-    {% endif %}
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, msg in messages %}
-                {% if category.startswith('add_session_') %}
-                    <div class="message {{ category }}">{{ msg }}</div>
-                {% endif %}
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-
-    <button id="showAddSessionForm" class="add_session">Add New Session ▼</button>
-
-    <div id="addSessionForm" style="display:none; margin-top:20px;">
-      <form method="POST">
-            {% if movies %}
-                <select name="movie_id" required>
-                    {% for movie in movies %}
-                        <option value="{{ movie[0] }}">{{ movie[1] }}</option>
-                    {% endfor %}
-                </select><br>
-            {% else %}
-                <select name="movie_id" disabled>
-                    <option>No movies available</option>
-                </select><br>
+              </thead>
+              <tbody>
+                {% for movie in movies %}
+                  <tr>
+                    <td>
+                      <div class="table-movie">
+                        <img src="{{ poster_url(movie.poster) }}"
+                             alt=""
+                             width="42"
+                             height="60"
+                             loading="lazy">
+                        <div>
+                          <strong>{{ movie.title }}</strong>
+                          <span>{{ movie.genre }} · {{ movie.age_rating }}+</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td>{{ movie.duration }} мин</td>
+                    <td>
+                      <div class="table-actions">
+                        <a class="table-link"
+                           href="{{ url_for('admin_panel', edit_movie=movie.id) }}#movies"
+                           aria-label="Редактировать фильм {{ movie.title }}">Изменить</a>
+                        <form method="post"
+                              data-confirm="Удалить фильм «{{ movie.title }}»? Удаление возможно, только если у фильма нет сеансов.">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                          <input type="hidden" name="action" value="delete_movie">
+                          <input type="hidden" name="movie_id" value="{{ movie.id }}">
+                          <button type="submit"
+                                  class="table-delete"
+                                  aria-label="Удалить фильм {{ movie.title }}">Удалить</button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                {% else %}
+                  <tr>
+                    <td colspan="3" class="table-empty">Пока нет фильмов. Добавьте первый.</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="admin-section" id="halls">
+      <div class="section-heading">
+        <h2>Кинозалы</h2>
+        <span class="section-note">Каждому зрителю — своё место</span>
+      </div>
+      <div class="admin-layout">
+        <div class="admin-editor">
+          <h3>{{ 'Редактировать зал' if edit_hall else 'Добавить зал' }}</h3>
+          <form method="post" class="stack-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden"
+                   name="action"
+                   value="{{ 'edit_hall' if edit_hall else 'add_hall' }}">
+            {% if edit_hall %}
+              <input type="hidden" name="hall_id" value="{{ edit_hall.id }}">
             {% endif %}
-
-
-            {% if halls %}
-                <select name="hall_id" required>
-                    {% for hall in halls %}
-                        <option value="{{ hall[0] }}">{{ hall[1] }}</option>
-                    {% endfor %}
-                </select><br>
-            {% else %}
-                <select name="hall_id" disabled>
-                    <option>No halls available</option>
-                </select><br>
+            <label>
+              Название<input type="text"
+       name="name"
+       value="{{ edit_hall.name if edit_hall else '' }}"
+       required
+       maxlength="80"
+       placeholder="Например, Атмосфера">
+            </label>
+            <div class="form-row">
+              <label>
+                Рядов<input type="number"
+       name="rows"
+       value="{{ edit_hall.rows if edit_hall else '' }}"
+       required
+       min="1"
+       max="20"
+       placeholder="8">
+              </label>
+              <label>
+                Мест в ряду<input type="number"
+       name="seats_per_row"
+       value="{{ edit_hall.seats_per_row if edit_hall else '' }}"
+       required
+       min="1"
+       max="30"
+       placeholder="12">
+              </label>
+            </div>
+            <p class="form-hint">Схема зала строится автоматически. Размеры зала с сеансами изменить нельзя.</p>
+            <button type="submit" class="button button-primary button-full">
+              {{ 'Сохранить изменения' if edit_hall else 'Добавить зал' }} <span aria-hidden="true">{{ '✓' if edit_hall else '+' }}</span>
+            </button>
+            {% if edit_hall %}
+              <a class="text-link centered" href="{{ url_for('admin_panel') }}#halls">Отменить редактирование</a>
             {% endif %}
-
-        <input type="datetime-local" name="datetime" required><br>
-        <input type="number" step="0.01" name="price" placeholder="Price" required><br><br>
-        <button type="submit" name="add_session" class="add_session">Submit</button>
-      </form>
-    </div>
-
-
-    <!-- JS TOGGLES -->
-    <script>
-        // Toggle hall form
-        const btnHall = document.getElementById('showAddHallForm');
-        const formHall = document.getElementById('addHallForm');
-        btnHall.addEventListener('click', function() {
-            const isHidden = formHall.style.display === 'none';
-            formHall.style.display = isHidden ? 'block' : 'none';
-            btnHall.textContent = isHidden ? "Hide Form ▲" : "Add New Hall ▼";
-        });
-
-        // Toggle movie form
-        const btnMovie = document.getElementById('showAddMovieForm');
-        const formMovie = document.getElementById('addMovieForm');
-        btnMovie.addEventListener('click', function() {
-            const isHidden = formMovie.style.display === 'none';
-            formMovie.style.display = isHidden ? 'block' : 'none';
-            btnMovie.textContent = isHidden ? "Hide Form ▲" : "Add New Movie ▼";
-        });
-
-        // Toggle session form
-        const btnSession = document.getElementById('showAddSessionForm');
-        const formSession = document.getElementById('addSessionForm');
-        btnSession.addEventListener('click', function() {
-            const isHidden = formSession.style.display === 'none';
-            formSession.style.display = isHidden ? 'block' : 'none';
-            btnSession.textContent = isHidden ? "Hide Form ▲" : "Add New Session ▼";
-        });
-
-        // Genres form
-        const genreOptions = document.querySelectorAll('.genre-option');
-        const hiddenInput = document.getElementById('selectedGenres');
-
-        genreOptions.forEach(option => {
-            option.addEventListener('click', () => {
-                option.classList.toggle('selected');
-
-                // Gather all selected genres
-                const selected = Array.from(genreOptions)
-                                      .filter(o => o.classList.contains('selected'))
-                                      .map(o => o.dataset.value);
-
-                hiddenInput.value = selected.join('/'); // Set hidden input value
-            });
-        });
-    </script>
-
-</body>
-</html>
+          </form>
+        </div>
+        <div class="hall-cards">
+          {% for hall in halls %}
+            <article class="hall-card">
+              <div class="hall-card-heading">
+                <span class="hall-icon" aria-hidden="true">▦</span>
+                <h3>{{ hall.name }}</h3>
+                <span class="status-pill">{{ hall.rows * hall.seats_per_row }} мест</span>
+              </div>
+              <div class="hall-card-stats">
+                <span>
+                  <strong>{{ hall.rows }}</strong> рядов</span>
+                <span>
+                  <strong>{{ hall.seats_per_row }}</strong> мест в ряду</span>
+              </div>
+              <div class="hall-card-actions">
+                <a class="table-link"
+                   href="{{ url_for('admin_panel', edit_hall=hall.id) }}#halls">Изменить зал</a>
+                <form method="post"
+                      data-confirm="Удалить зал «{{ hall.name }}»? Удаление возможно, только если в зале нет сеансов.">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="action" value="delete_hall">
+                  <input type="hidden" name="hall_id" value="{{ hall.id }}">
+                  <button type="submit" class="table-delete">Удалить</button>
+                </form>
+              </div>
+            </article>
+          {% else %}
+            <div class="empty-state compact">
+              <h3>Здесь будут ваши залы</h3>
+              <p>Добавьте зал и укажите количество мест.</p>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+    <section class="admin-section" id="sessions">
+      <div class="section-heading">
+        <h2>Расписание</h2>
+        <span class="section-note">Время местное</span>
+      </div>
+      <div class="admin-layout">
+        <div class="admin-editor">
+          <h3>{{ 'Редактировать сеанс' if edit_session else 'Добавить сеанс' }}</h3>
+          <form method="post" class="stack-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden"
+                   name="action"
+                   value="{{ 'edit_session' if edit_session else 'add_session' }}">
+            {% if edit_session %}
+              <input type="hidden" name="session_id" value="{{ edit_session.id }}">
+            {% endif %}
+            <label>
+              Фильм<select name="movie_id" required>
+              <option value="">Выберите фильм</option>
+              {% for movie in movies %}
+                <option value="{{ movie.id }}"
+                        {% if edit_session and edit_session.movie_id == movie.id %}selected{% endif %}>{{ movie.title }}</option>
+              {% endfor %}
+              </select>
+            </label>
+            <label>
+              Зал<select name="hall_id" required>
+              <option value="">Выберите зал</option>
+              {% for hall in halls %}
+                <option value="{{ hall.id }}"
+                        {% if edit_session and edit_session.hall_id == hall.id %}selected{% endif %}>{{ hall.name }} · {{ hall.rows * hall.seats_per_row }} мест</option>
+              {% endfor %}
+              </select>
+            </label>
+            <label>
+              Дата и время<input type="datetime-local"
+       name="datetime"
+       value="{{ edit_session.datetime.strftime('%Y-%m-%dT%H:%M') if edit_session else '' }}"
+       required>
+            </label>
+            <label>
+              Цена за место, ₽<input type="number"
+       name="price"
+       value="{{ edit_session.price if edit_session else '' }}"
+       min="0.01"
+       max="9999.99"
+       step="0.01"
+       required
+       placeholder="450">
+            </label>
+            <p class="form-hint">Между сеансами в одном зале предусмотрен перерыв 15 минут. Сеанс с бронированиями можно отменить, но нельзя изменить.</p>
+            <button class="button button-primary button-full"
+                    type="submit"
+                    {% if not movies or not halls %}disabled{% endif %}>{{ 'Сохранить изменения' if edit_session else 'Добавить сеанс' }} <span aria-hidden="true">{{ '✓' if edit_session else '+' }}</span>
+            </button>
+            {% if not movies or not halls %}
+              <p class="form-hint">Сначала добавьте фильм и зал.</p>
+            {% endif %}
+            {% if edit_session %}
+              <a class="text-link centered"
+                 href="{{ url_for('admin_panel') }}#sessions">Отменить редактирование</a>
+            {% endif %}
+          </form>
+        </div>
+        <div class="admin-list">
+          <div class="table-scroll">
+            <table class="data-table session-table">
+              <thead>
+                <tr>
+                  <th>Сеанс</th>
+                  <th>Зал / места</th>
+                  <th>Цена</th>
+                  <th>
+                    <span class="sr-only">Действия</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for screening in sessions %}
+                  <tr class="{% if screening.is_cancelled %}cancelled-row{% endif %}">
+                    <td>
+                      <strong>{{ screening.movie_title }}</strong>
+                      <span class="table-sub">{{ screening.datetime|cinema_date }} · {{ screening.datetime|cinema_time }}{% if screening.is_cancelled %} · Отменён{% endif %}
+                      </span>
+                    </td>
+                    <td>
+                      {{ screening.hall_name }}<span class="table-sub">Занято {{ screening.booked_seats }}</span>
+                    </td>
+                    <td class="nowrap">{{ screening.price|money }}</td>
+                    <td>
+                      {% if not screening.is_cancelled and screening.datetime > cinema_now() %}
+                        <div class="table-actions">
+                          {% if not screening.total_bookings %}
+                            <a class="table-link"
+                               href="{{ url_for('admin_panel', edit_session=screening.id) }}#sessions">Изменить</a>
+                          {% endif %}
+                          <form method="post"
+                                data-confirm="Отменить сеанс «{{ screening.movie_title }}»? Все бронирования на этот сеанс также будут отменены.">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="action" value="delete_session">
+                            <input type="hidden" name="session_id" value="{{ screening.id }}">
+                            <button type="submit" class="table-delete">Отменить</button>
+                          </form>
+                        </div>
+                      {% else %}
+                        <span class="muted">—</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% else %}
+                  <tr>
+                    <td colspan="4" class="table-empty">Расписание пока пустое. Создайте первый сеанс.</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+{% endblock %}

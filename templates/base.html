@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#111315">
+    <meta name="description"
+          content="Cinema Booking — афиша, расписание сеансов и бронирование лучших мест в кино.">
+    <title>{% block title %}Cinema Booking — время для кино{% endblock %}</title>
+    <link rel="icon"
+          href="{{ url_for('static', filename='favicon.svg') }}"
+          type="image/svg+xml">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+    {% block head %}{% endblock %}
+  </head>
+  <body class="{% block body_class %}{% endblock %}">
+    <a class="skip-link" href="#main">Перейти к содержимому</a>
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand"
+           href="{{ url_for('home') }}"
+           aria-label="Cinema Booking — главная">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 30 30">
+              <path d="M21 5.6a11 11 0 1 0 0 18.8" />
+              <path d="m15 10 7 5-7 5z" />
+            </svg>
+          </span>
+          <span>CINEMA<span class="brand-sub">BOOKING</span>
+          </span>
+        </a>
+        <nav class="main-nav" aria-label="Основная навигация">
+          <a class="nav-link {% if request.endpoint in ['home','movie_sessions','buy_ticket'] %}active{% endif %}"
+             href="{{ url_for('home') }}">Афиша</a>
+          {% if current_user %}
+            <a class="nav-link {% if request.endpoint in ['account','booking_detail'] %}active{% endif %}"
+               href="{{ url_for('account') }}">Мои билеты</a>
+          {% endif %}
+          {% if current_user and current_user.is_admin %}
+            <a class="nav-link {% if request.endpoint == 'admin_panel' %}active{% endif %}"
+               href="{{ url_for('admin_panel') }}">Управление</a>
+          {% endif %}
+        </nav>
+        <div class="header-account">
+          {% if current_user %}
+            <a class="user-name" href="{{ url_for('account') }}">
+              <span class="avatar" aria-hidden="true">{{ current_user.username[0]|upper }}</span>
+              <span>{{ current_user.username }}</span>
+            </a>
+            <form action="{{ url_for('logout') }}" method="post">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="icon-button" type="submit" aria-label="Выйти" title="Выйти">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 4H4v16h5M14 8l4 4-4 4M8 12h11" />
+                </svg>
+              </button>
+            </form>
+          {% else %}
+            <a class="button button-small button-outline"
+               href="{{ url_for('login') }}">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="8" r="3.5" />
+                <path d="M5 21v-2a7 7 0 0 1 14 0v2" />
+              </svg>Войти</a>
+          {% endif %}
+        </div>
+      </div>
+    </header>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="container flash-stack" aria-live="polite">
+          {% for category, message in messages %}
+            <div class="notice notice-{{ category }}" role="status">
+              <span>{{ message }}</span>
+              <button type="button" class="notice-close" aria-label="Закрыть уведомление">×</button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    <main id="main">
+      {% block content %}{% endblock %}
+    </main>
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <a class="footer-brand" href="{{ url_for('home') }}">CINEMA <span>BOOKING</span>
+        </a>
+        <p>Большой экран. Настоящие эмоции.</p>
+        <span class="footer-note">Ваш следующий вечер в кино</span>
+      </div>
+    </footer>
+  </body>
+</html>

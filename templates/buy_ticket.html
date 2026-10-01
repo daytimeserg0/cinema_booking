@@ -1,82 +1,144 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Buy Ticket</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='buying.css') }}">
-
-</head>
-<body>
-    <h1>Hall: {{ selected_session[2] }}</h1>
-    <p>Price per seat: {{ selected_session[1] }}</p>
-
-    <div class="screen-label">Screen</div>
-    <div class="screen"></div>
-
-    <div class="hall-container">
-        {% for row in range(selected_session[3]) %}
-        <div class="row">
-            <div class="row-number">{{ row+1 }}</div>
-
-            <div class="hall" style="--seats-per-row: {{ selected_session[4] }};">
-                {% for seat in range(selected_session[4]) %}
-                    {% set taken_flag = (row+1, seat+1) in taken %}
-                    <div
-                        class="seat {% if taken_flag %}taken{% endif %}"
-                        data-row="{{ row+1 }}"
-                        data-seat="{{ seat+1 }}">
-                        {{ seat+1 }}
-                    </div>
-                {% endfor %}
-            </div>
-
-            <div class="row-number">{{ row+1 }}</div>
+{% extends "base.html" %}
+{% block title %}Выбор мест — {{ selected_session.title }}{% endblock %}
+{% block content %}
+  <div class="container page-content">
+    <a class="back-link" href="{{ url_for('home') }}">
+      <span aria-hidden="true">←</span> К афише</a>
+    <div class="booking-page-heading">
+      <div>
+        <span class="eyebrow">Почти в кино</span>
+        <h1>
+          Ваше место в истории<span class="accent">.</span>
+        </h1>
+      </div>
+      <div class="booking-steps">
+        <span>
+          <b>01</b> Сеанс</span>
+        <span class="current">
+          <b>02</b> Места</span>
+        <span>
+          <b>03</b> Билет</span>
+      </div>
+    </div>
+    <form method="post"
+          id="seat-form"
+          class="seat-layout"
+          data-price="{{ selected_session.price }}"
+          data-max="{{ max_seats }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="session_quote" value="{{ session_quote }}">
+      <input type="hidden" name="selected_seats" id="selected-seats" value="">
+      <section class="seat-panel" aria-labelledby="hall-title">
+        <div class="seat-panel-heading">
+          <h2 id="hall-title">{{ selected_session.hall_name }}</h2>
+          <span>Выберите до {{ max_seats }} мест</span>
         </div>
-        {% endfor %}
-    </div>
-
-    <div class="summary">
-        Selected seats: <span id="seatCount">0</span> |
-        Total price: <span id="totalPrice">0</span>
-    </div>
-
-    <form id="buyForm" method="POST" action="{{ url_for('buy_ticket', session_id=selected_session[0]) }}">
-        <input type="hidden" name="selected_seats" id="selectedSeats">
-        <button type="submit" class="buy-btn">Buy Selected</button>
-    </form>
-
-    <div class="legend">
-        <div class="free"><div class="legend-box"></div>Free</div>
-        <div class="selected"><div class="legend-box"></div>Selected</div>
-        <div class="taken"><div class="legend-box"></div>Taken</div>
-    </div>
-
-    <p><a href="/">Back to Home</a></p>
-
-    <script>
-        const seats = document.querySelectorAll('.seat:not(.taken)');
-        const selectedSeatsInput = document.getElementById('selectedSeats');
-        const seatCount = document.getElementById('seatCount');
-        const totalPrice = document.getElementById('totalPrice');
-        const seatPrice = {{ selected_session[1] }};
-        let selected = [];
-
-        seats.forEach(seat => {
-            seat.addEventListener('click', () => {
-                const seatPos = seat.dataset.row + '-' + seat.dataset.seat;
-                if (selected.includes(seatPos)) {
-                    selected = selected.filter(s => s !== seatPos);
-                    seat.classList.remove('selected');
-                } else {
-                    selected.push(seatPos);
-                    seat.classList.add('selected');
-                }
-
-                selectedSeatsInput.value = selected.join(',');
-                seatCount.textContent = selected.length;
-                totalPrice.textContent = (selected.length * seatPrice).toFixed(2);
-            });
-        });
-    </script>
-</body>
-</html>
+        <div class="hall-scroll">
+          <div class="hall-map"
+               style="--seat-count: {{ selected_session.seats_per_row }}">
+            <div class="screen">
+              <span>ЭКРАН</span>
+            </div>
+            <div class="seat-rows">
+              {% for row in range(1, selected_session.rows + 1) %}
+                <div class="seat-row">
+                  <span class="row-label" aria-hidden="true">{{ row }}</span>
+                  {% for number in range(1, selected_session.seats_per_row + 1) %}
+                    {% set occupied = [row, number] in taken %}
+                    <button type="button"
+                            class="seat{% if occupied %} occupied{% endif %}"
+                            data-row="{{ row }}"
+                            data-number="{{ number }}"
+                            aria-label="Ряд {{ row }}, место {{ number }}{% if occupied %}, занято{% endif %}"
+                            aria-pressed="false"
+                            {% if occupied %}disabled{% endif %}>{{ number }}</button>
+                  {% endfor %}
+                  <span class="row-label" aria-hidden="true">{{ row }}</span>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        <div class="seat-legend">
+          <span>
+            <i class="legend-seat">
+            </i>Свободно</span>
+            <span>
+              <i class="legend-seat selected">
+              </i>Ваш выбор</span>
+              <span>
+                <i class="legend-seat occupied">
+                </i>Занято</span>
+              </div>
+              <p class="seat-hint">Ряды пронумерованы от экрана</p>
+              <noscript>
+                <div class="notice notice-error">Для выбора мест включите JavaScript в браузере.</div>
+              </noscript>
+            </section>
+            <aside class="booking-summary">
+              <div class="summary-movie">
+                <img src="{{ poster_url(selected_session.poster) }}"
+                     alt=""
+                     width="70"
+                     height="100">
+                <div>
+                  <span class="eyebrow">Ваш сеанс</span>
+                  <h2>{{ selected_session.title }}</h2>
+                  <p>{{ selected_session.genre }} · {{ selected_session.duration }} мин</p>
+                </div>
+              </div>
+              <dl class="summary-details">
+                <div>
+                  <dt>Дата</dt>
+                  <dd>
+                    {{ selected_session.datetime|cinema_date }}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Начало</dt>
+                  <dd>
+                    {{ selected_session.datetime|cinema_time }}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Зал</dt>
+                  <dd>
+                    {{ selected_session.hall_name }}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Цена за место</dt>
+                  <dd>
+                    {{ selected_session.price|money }}
+                  </dd>
+                </div>
+              </dl>
+              <div class="selected-places">
+                <div class="label-with-count">
+                  <h3>Ваши места</h3>
+                  <span id="seat-count">0 / {{ max_seats }}</span>
+                </div>
+                <div id="selected-seat-labels" class="selected-seat-labels">
+                  <p class="muted">Нажмите на свободное место на схеме</p>
+                </div>
+              </div>
+              <p class="seat-status" id="seat-status" role="status" aria-live="polite"></p>
+              <div class="summary-total">
+                <span>Итого</span>
+                <strong id="booking-total">0 ₽</strong>
+              </div>
+              <button type="submit"
+                      class="button button-primary button-full"
+                      id="book-button"
+                      disabled>
+                Забронировать <span aria-hidden="true">↗</span>
+              </button>
+              <p class="booking-disclaimer">
+                Оплата в кассе кинотеатра.
+                <br>
+                Бронь можно отменить до начала сеанса.
+              </p>
+            </aside>
+          </form>
+        </div>
+{% endblock %}

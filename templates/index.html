@@ -1,41 +1,180 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Cinema Booking</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <h1>Welcome to Cinema Booking</h1>
-
-    {% if session.role == 'admin' %}
-        <a href="/logout" class="btn">Logout</a>
-        <a href="/admin" class="btn">Admin Panel</a>
-    {% elif session.username %}
-        <p>Hello, {{ session.username }}!</p>
-        <a href="/logout" class="btn">Logout</a>
-        <a href="/account" class="btn">My Account</a>
+{% extends "base.html" %}
+{% block content %}
+  <div class="container">
+    {% if featured %}
+      <section class="hero" aria-labelledby="hero-title">
+        <img class="hero-art"
+             src="{{ poster_url(featured.poster) }}"
+             alt=""
+             fetchpriority="high">
+        <div class="hero-shade"></div>
+        <div class="hero-content">
+          <span class="eyebrow">
+            <span class="live-dot"></span> На большом экране</span>
+            <h1 id="hero-title">{{ featured.title }}</h1>
+            <div class="hero-meta">
+              <span>{{ featured.genre }}</span>
+              <span>{{ featured.duration }} мин</span>
+              <span class="age-badge">{{ featured.age_rating }}+</span>
+            </div>
+            <p>{{ featured.description }}</p>
+            <a class="button button-primary"
+               href="{{ url_for('movie_sessions', movie_id=featured.id, date=selected_date) }}">Выбрать сеанс <span aria-hidden="true">↗</span>
+            </a>
+          </div>
+          <div class="hero-caption">
+            <span>ВРЕМЯ ДЛЯ КИНО</span>
+            <span class="hero-caption-line"></span>
+            <span>01 / СЕЙЧАС В КИНО</span>
+          </div>
+        </section>
     {% else %}
-        <a href="/register" class="btn">Register</a>
-        <a href="/login" class="btn">Login</a>
-    {% endif %}
-
-
-    <h1>Now Showing</h1>
-
-    <div class="movies">
-    {% for m in movies %}
-        <div class="movie-card" onclick="window.location.href='/movie/{{ m[0] }}';">
-            <img src="{{ url_for('static', filename='posters/' + m[4]) }}" alt="{{ m[1] }}">
-            <h2>Title: {{ m[1] }}</h2>
-            <p><strong>Genre:</strong> {{ m[2] }}</p>
-            <p><strong>Description:</strong> {{ m[3] }}</p>
-            <p><strong>Duration:</strong> {{ m[5] }} minutes</p>
-            {# <a href="{{ url_for('movie_sessions', movie_id=m[0]) }}" class="btn">View Sessions</a> #}
+      <section class="hero hero-empty">
+        <div class="hero-content">
+          <span class="eyebrow">Cinema Booking</span>
+          <h1>
+            У каждого вечера
+            <br>
+            своя история.
+          </h1>
+          <p>Выберите фильм, найдите удобный сеанс и займите своё место в кино.</p>
         </div>
-    {% else %}
-        <p>No movies available at the moment.</p>
-    {% endfor %}
-</div>
-</body>
-</html>
+      </section>
+    {% endif %}
+    <section class="catalog-section" aria-labelledby="catalog-heading" id="afisha">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">Планы на хороший вечер</span>
+          <h2 id="catalog-heading">
+            Сегодня — в кино<span class="accent">.</span>
+          </h2>
+        </div>
+        <span class="section-note">Найдите свою историю</span>
+      </div>
+      <form class="filter-form"
+            method="get"
+            action="{{ url_for('home') }}#afisha">
+        <div class="filter-top">
+          <div class="date-tabs" aria-label="Дата сеанса">
+            <button type="submit"
+                    name="date"
+                    value=""
+                    class="date-tab {% if not selected_date %}selected{% endif %}">
+              <span>Все дни</span>
+              <small>Расписание</small>
+            </button>
+            {% for item in dates %}
+              <button class="date-tab {% if selected_date == item.value %}selected{% endif %}"
+                      type="submit"
+                      name="date"
+                      value="{{ item.value }}">
+                <span>{{ item.label }}</span>
+                <small>{{ item.day }}</small>
+              </button>
+            {% endfor %}
+          </div>
+          <div class="filter-fields">
+            <label class="search-field">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="10.5" cy="10.5" r="6.5" />
+                <path d="m16 16 4 4" />
+              </svg>
+              <input type="search"
+                     name="q"
+                     value="{{ search_query }}"
+                     placeholder="Найти фильм"
+                     aria-label="Найти фильм">
+            </label>
+            <label class="genre-field">
+              <span class="sr-only">Жанр</span>
+              <select name="genre" aria-label="Жанр фильма">
+                <option value="">Все жанры</option>
+                {% for genre in genres %}
+                  <option value="{{ genre }}"
+                          {% if selected_genre == genre %}selected{% endif %}>{{ genre }}</option>
+                {% endfor %}
+              </select>
+            </label>
+            <button class="button button-small button-filter"
+                    type="submit"
+                    name="date"
+                    value="{{ selected_date }}">Найти</button>
+          </div>
+        </div>
+        {% if search_query or selected_genre or selected_date %}
+          <div class="filter-result">
+            <span>Найдено фильмов: {{ movies|length }}</span>
+            <a href="{{ url_for('home') }}#afisha">Сбросить фильтры <span aria-hidden="true">×</span>
+            </a>
+          </div>
+        {% endif %}
+      </form>
+      {% if movies %}
+        <div class="movie-grid">
+          {% for movie in movies %}
+            <article class="movie-card">
+              <a class="poster-link"
+                 href="{{ url_for('movie_sessions', movie_id=movie.id, date=selected_date) }}"
+                 aria-label="{{ movie.title }} — расписание сеансов">
+                <img src="{{ poster_url(movie.poster) }}"
+                     alt="Постер фильма «{{ movie.title }}»"
+                     loading="lazy"
+                     width="600"
+                     height="860">
+                <span class="poster-age">{{ movie.age_rating }}+</span>
+                <span class="poster-action">Выбрать места <span aria-hidden="true">↗</span>
+                </span>
+              </a>
+              <div class="movie-card-info">
+                <div class="movie-genre">
+                  {{ movie.genre }}<span>{{ movie.duration }} мин</span>
+                </div>
+                <h3>
+                  <a href="{{ url_for('movie_sessions', movie_id=movie.id, date=selected_date) }}">{{ movie.title }}</a>
+                </h3>
+                <div class="movie-card-bottom">
+                  {% if movie.next_session %}
+                    <span>
+                      <span class="status-dot"></span>{{ movie.next_session|cinema_date }} · {{ movie.next_session|cinema_time }}</span>
+                  {% else %}
+                    <span>Скоро в расписании</span>
+                  {% endif %}
+                  {% if movie.min_price is not none %}
+                    <strong>от {{ movie.min_price|money }}</strong>
+                  {% endif %}
+                </div>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <span class="empty-icon" aria-hidden="true">◎</span>
+          <h3>Пока без сеансов</h3>
+          <p>
+            {% if search_query or selected_genre or selected_date %}Попробуйте другой день, жанр или название фильма.{% else %}Новые фильмы и сеансы скоро появятся в афише.{% endif %}
+          </p>
+          {% if search_query or selected_genre or selected_date %}
+            <a class="button button-outline" href="{{ url_for('home') }}#afisha">Посмотреть всю афишу</a>
+          {% endif %}
+        </div>
+      {% endif %}
+    </section>
+    <section class="cinema-note">
+      <span class="note-symbol" aria-hidden="true">✳</span>
+      <h2>
+        Отложите дела.
+        <br>
+        <span>Начинается кино.</span>
+      </h2>
+      <p>
+        Выберите места на схеме зала,
+        <br>
+        а билеты мы сохраним в вашем аккаунте.
+      </p>
+      <a class="text-link"
+         href="{{ url_for('account') if current_user else url_for('register') }}">{{ 'Мои билеты' if current_user else 'Создать аккаунт' }} <span aria-hidden="true">↗</span>
+      </a>
+    </section>
+  </div>
+{% endblock %}
